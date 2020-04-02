@@ -1,7 +1,490 @@
 ---
-title: "Analysis"
-output: html_notebook
+title: "SEO Jobs Analysis"
+author: "Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: paper
+    highlight: kate
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float: true
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
+<style>
+.list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
+  background-color: #00d188;
+  border-color: #00d188;
+}
+
+body {
+  font-family: montserrat;
+  color: #444444;
+  font-size: 14px;
+}
+
+h1 {
+  font-weight: bold;
+  font-size: 28px;
+}
+
+h1.title {
+  font-size: 30px;
+  color: #00d188;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 18px;
+}
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.showtext = TRUE)
+
+knitr::knit_hooks$set(inline = function(x) {
+  prettyNum(x, big.mark = ",", small.mark = ",", scientific = F)
+})
+```
+
+```{r prep}
+## packages
+library(tidyverse)
+library(tidytext)
+library(pdftools)
+library(showtext)
+
+## save plots?
+save <- TRUE
+#save <- FALSE
+
+## quality of png's
+dpi <- 750
+
+## font
+font_add_google("Montserrat", "Montserrat")
+font_add_google("Overpass Mono", "Overpass Mono")
+
+## theme updates
+theme_set(ggthemes::theme_clean(base_size = 15, base_family = "Montserrat"))
+
+theme_update(plot.margin = margin(30, 30, 30, 30),
+             plot.background = element_rect(color = "white",
+                                            fill = "white"),
+             plot.title = element_text(family = "Montserrat SemiBold",
+                                       size = 16,
+                                       face = "bold",
+                                       lineheight = 1.15,
+                                       hjust = .5,
+                                       margin = margin(10, 0, 25, 0)),
+             #plot.title.position = "plot",
+             plot.caption = element_text(color = "grey40", 
+                                         size = 9,
+                                         margin = margin(20, 0, -20, 0)),
+             plot.caption.position = "plot",
+             axis.line.x = element_line(color = "black",
+                                        size = .8),
+             axis.line.y = element_line(color = "black",
+                                        size = .8),
+             axis.title.x = element_text(family = "Montserrat SemiBold",
+                                         size = 16,
+                                         face = "bold",
+                                         margin = margin(t = 20)),
+             axis.title.y = element_text(family = "Montserrat SemiBold",
+                                         size = 16,
+                                         face = "bold",
+                                         margin = margin(r = 20)),
+             axis.text = element_text(size = 11,
+                                      color = "black",
+                                      face = "bold"),
+             axis.text.x = element_text(margin = margin(t = 10)),
+             axis.text.y = element_text(margin = margin(r = 10)),
+             axis.ticks = element_blank(),
+             panel.grid.major.x = element_line(size = .6,
+                                               color = "#eaeaea",
+                                               linetype = "solid"),
+             panel.grid.major.y = element_line(size = .6,
+                                               color = "#eaeaea",
+                                               linetype = "solid"),
+             panel.grid.minor.x = element_line(size = .6,
+                                               color = "#eaeaea",
+                                               linetype = "solid"),
+             panel.grid.minor.y = element_blank(),
+             panel.spacing.x = unit(4, "lines"),
+             panel.spacing.y = unit(2, "lines"),
+             legend.position = "top",
+             legend.title = element_text(family = "Montserrat",
+                                         color = "black",
+                                         size = 14,
+                                         margin = margin(5, 0, 5, 0)),
+             legend.text = element_text(family = "Montserrat",
+                                        color = "black",
+                                        size = 11,
+                                        margin = margin(4.5, 4.5, 4.5, 4.5)),
+             legend.background = element_rect(fill = NA,
+                                              color = NA),
+             legend.key = element_rect(color = NA, fill = NA),
+             #legend.key.width = unit(5, "lines"),
+             #legend.spacing.x = unit(.05, "pt"),
+             #legend.spacing.y = unit(.55, "pt"),
+             #legend.margin = margin(0, 0, 10, 0),
+             strip.text = element_text(face = "bold",
+                                       margin = margin(b = 10)))
+
+## theme settings for flipped plots
+theme_flip <-
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_line(size = .6,
+                                          color = "#eaeaea"))
+
+## numeric format for labels
+num_format <- scales::format_format(big.mark = ",", small.mark = ",", scientific = F)
+
+## main color backlinko
+bl_col <- "#00d188"
+
+## colors + labels for interval stripes
+int_cols <- c("#bce2d5", "#79d8b6", bl_col, "#009f66", "#006c45", "#003925")
+int_perc <- c("100%", "95%", "75%", "50%", "25%", "5%")
+
+## gradient colors for position
+colfunc <- colorRampPalette(c(bl_col, "#bce2d5"))
+pos_cols <- colfunc(10)
+```
+
+```{r data}
+df <- readr::read_csv(here::here("raw_data", "Glassdoor - 2020-04-01-0.csv")) %>% 
+  janitor::clean_names() %>% 
+  dplyr::select(-url)
+```
+
+
+# 1. Job Title
+
+## 1.1 Most Popular SEO Jobs
+
+We analysed the data on job titles using text mining techniques. In a first step, we tokenize the job titles into single words and visualize their frequency. Stop words and words that appeared less than 7 times were removed to make the graph easier to grasp.
+
+```{r 1-1-popular-job-words, fig.width = 12, fig.height = 9}
+df %>% 
+  unnest_tokens(word, job_title, token = "words") %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = T) %>% 
+  filter(
+    n > 7,
+    word != "seo"
+  ) %>% 
+  mutate(word = if_else(word %in% c("sr", "ppc"), 
+                        str_to_upper(word), 
+                        str_to_title(word))) %>% 
+  ggplot(aes(fct_reorder(word, n), n)) +
+    geom_col(fill = bl_col, width = .8) +
+    geom_text(aes(label = n),
+              family = "Overpass Mono",
+              color = "white",
+              face = "bold",
+              hjust = 1,
+              nudge_y = -1) +
+    coord_flip() +
+    scale_y_continuous(expand = c(.01, .01)) +
+    labs(x = NULL, 
+         y = "Term frequence in job titles",
+         caption = 'Note: Only words with a frequency of 8 or more shown. The term "SEO" was removed.') +
+    theme_flip
+
+if(save == T){
+  ggsave(here::here("plots", "1_1_jobs_word.pdf"), width = 12, height = 9, device = cairo_pdf)
+}
+```
+
+
+In a second step, we analysed sequences of words in the job title. The sorted bar plot shows the most popular consecutive sequences of words (5 or more occurences), colored by category.
+
+```{r 1-1-popular-jobs-ngrams-cat, fig.width = 12, fig.height = 7.5}
+df_job_ngrams <-
+  df %>% 
+  unnest_tokens(word, job_title, token = "ngrams") %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = T) %>% 
+  filter(
+    n > 4,
+    !is.na(word)
+  ) %>% 
+  mutate(
+    group = case_when(
+      str_detect(word, "content") ~ "Content",
+      str_detect(word, "manager") ~ "Management",
+      str_detect(word, "analyst") ~ "Analysis",
+      str_detect(word, "strategist") ~ "Strategy",
+      str_detect(word, "optimiz") ~ "Optimization",
+      str_detect(word, "market") ~ "Marketing",
+      str_detect(word, "specialist") ~ "Analysis",
+      TRUE ~ "Other"
+    ),
+    word = str_to_title(word)
+  ) 
+  
+ggplot(df_job_ngrams, 
+       aes(fct_reorder(word, n), n)) +
+    geom_col(aes(fill = group), 
+             width = .8) +
+    geom_text(aes(label = n),
+              family = "Overpass Mono",
+              color = "white",
+              face = "bold",
+              hjust = 1,
+              nudge_y = -.7) +
+    coord_flip() +
+    scale_y_continuous(expand = c(.01, .01)) +
+    scale_fill_manual(name = "Job Category",
+                      values = c("#2d6db4", "#633b96", "#e49e2e", "#b8318c", "#00b877", "#96633b")) +
+    guides(fill = guide_legend(ncol = 1)) +
+    labs(x = NULL, 
+         y = "Frequence of word sequence in job titles",
+         caption = "Note: Only sequences with a frequency of 5 or more shown.") +
+    theme_flip +
+    theme(legend.position = c(.68, .627),
+          legend.key.size = unit(3, "pt"),
+          legend.key.width = unit(30, "pt"))
+
+if(save == T){
+  ggsave(here::here("plots", "1_1_jobs_cat.pdf"), width = 12, height = 7.5, device = cairo_pdf)
+}
+```
+
+
+We  manually classified in technical and non-technical positions, removing all words that are no specific to any of the both categories. This modified stacked bar plot shows the number of words found per job category and, additionally as another stacked bar next to it, the most common words per category (with labels for words that occured at least 20 times). The height of the stacks indicates as well the number, the width is arbitrary.
+
+```{r 1-1-popular-job-type, fig.width = 12, fig.height = 12}
+## technical: analyst, specialist, engineer, developer, technician, optimization,
+## non-technical: manager, director, writer, consultant, coordinator, editor, marketing, sales, social media 
+
+df_polar <-
+  df %>% 
+  unnest_tokens(word, job_title, token = "words") %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = T) %>% 
+  mutate(
+    type = case_when(
+      str_detect(word, "analy|special|engine|develop|technic|optimi") ~ "technical",
+      str_detect(word, "manage|direct|writ|consult|coordinat|edito|market|sale|social|strateg|supervis") ~ "non-technical",
+      TRUE ~ "unknown"
+    )
+  ) %>%
+  filter(type != "unknown") %>% 
+  group_by(type) %>% 
+  mutate(sum = sum(n)) %>% 
+  ungroup %>% 
+  arrange(sum, n) %>% 
+  mutate(
+    pos = cumsum(n),
+    pos = if_else(!is.na(lag(pos)), pos - ((pos - lag(pos)) / 2), pos / 2)
+  ) %>% 
+  mutate(type = fct_reorder(factor(type), -sum)) %>% 
+  mutate(country = fct_reorder2(factor(word), as.numeric(type), n, .desc = F)) %>% 
+  group_by(type) %>%
+  arrange(n) %>% 
+  mutate(
+    alpha = n / max(n),
+    pos_cont = min(pos) + (max(pos) - min(pos)) / 2
+  ) 
+
+df_polar %>% 
+  ggplot(aes(1, n)) +
+    geom_col(
+      aes(
+        fill = type,
+        fill = after_scale(colorspace::darken(fill, .05)), 
+        color = type,
+        color = after_scale(colorspace::darken(color, .15)), 
+        alpha = alpha
+      ), 
+      size = .1
+    ) +
+    geom_col(
+      aes(fill = type,
+          color = type,
+          fill = after_scale(colorspace::darken(fill, .3)),
+          color = after_scale(colorspace::darken(color, .3))),
+      width = .4,
+      size = .1
+    ) +
+    geom_rect(
+      xmin = -Inf, xmax = .8,
+      ymin = -Inf, ymax = Inf,
+      fill = "white"
+    ) +
+    geom_text(data = df_polar %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont), sum = unique(sum)),
+              aes(1, pos_cont + 50, 
+                  label = glue::glue("{type}\npositions")),
+              family = "Montserrat",
+              fontface = "bold",
+              color = "white",
+              size = 8,
+              lineheight = .9,
+              hjust = .5,
+              vjust = 0) +
+    geom_text(data = df_polar %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont), sum = unique(sum)),
+              aes(1, pos_cont, 
+                  label = sum),
+              family = "Overpass Mono",
+              color = "white",
+              size = 10,
+              lineheight = .9,
+              hjust = .5,
+              vjust = .5) +
+    geom_text(data = df_polar %>% filter(n > 11),
+              aes(1.47, pos, 
+                  label = word, 
+                  color = type,
+                  color = after_scale(colorspace::darken(color, .15)),
+                  hjust = 0,
+                  size = n),
+              family = "Montserrat", 
+              fontface = "bold") +
+    geom_text(data = df_polar %>% filter(n > 11),
+              aes(1.33, pos, 
+                  label = n, 
+                  hjust = .5,
+                  size = n / 2),
+              family = "Overpass Mono", 
+              color = "white") +
+    scale_x_continuous(limits = c(0.5, 2.15)) +
+    scale_color_manual(values = c(bl_col, "#8800d1"), guide = F) +
+    scale_fill_manual(values = c(bl_col, "#8800d1"), guide = F) + 
+    scale_alpha(range = c(.3, 1), guide = F) +
+    scale_size(range = c(3, 15), guide = F) +
+    theme_void()
+
+if(save == T){
+  ggsave(here::here("plots", "1_1_jobs_tech.pdf"), width = 12, height = 12, device = cairo_pdf)
+}
+```
+
+```{r 1-1-popular-job-type-no-specialist, fig.width = 12, fig.height = 10.5}
+## technical: analyst, engineer, developer, technician, optimization,
+## non-technical: manager, director, writer, consultant, coordinator, editor, marketing, sales, social media 
+
+df_polar <-
+  df %>% 
+  unnest_tokens(word, job_title, token = "words") %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = T) %>% 
+  mutate(
+    type = case_when(
+      str_detect(word, "analy|engine|develop|technic|optimi") ~ "technical",
+      str_detect(word, "manage|direct|writ|consult|coordinat|edito|market|sale|social|strateg|supervis") ~ "non-technical",
+      TRUE ~ "unknown"
+    )
+  ) %>%
+  filter(type != "unknown") %>% 
+  group_by(type) %>% 
+  mutate(sum = sum(n)) %>% 
+  ungroup %>% 
+  arrange(-sum, n) %>% 
+  mutate(
+    pos = cumsum(n),
+    pos = if_else(!is.na(lag(pos)), pos - ((pos - lag(pos)) / 2), pos / 2)
+  ) %>% 
+  mutate(type = fct_reorder(factor(type), sum)) %>% 
+  mutate(country = fct_reorder2(factor(word), as.numeric(type), n, .desc = F)) %>% 
+  group_by(type) %>%
+  arrange(n) %>% 
+  mutate(
+    alpha = n / max(n),
+    pos_cont = min(pos) + (max(pos) - min(pos)) / 2
+  ) 
+
+df_polar %>% 
+  ggplot(aes(1, n)) +
+    geom_col(
+      aes(
+        fill = type,
+        fill = after_scale(colorspace::darken(fill, .05)), 
+        color = type,
+        color = after_scale(colorspace::darken(color, .15)), 
+        alpha = alpha
+      ), 
+      size = .1
+    ) +
+    geom_col(
+      aes(fill = type,
+          color = type,
+          fill = after_scale(colorspace::darken(fill, .3)),
+          color = after_scale(colorspace::darken(color, .3))),
+      width = .4,
+      size = .1
+    ) +
+    geom_rect(
+      xmin = -Inf, xmax = .8,
+      ymin = -Inf, ymax = Inf,
+      fill = "white"
+    ) +
+    geom_text(data = df_polar %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont), sum = unique(sum)),
+              aes(1, pos_cont + 50, 
+                  label = glue::glue("{type}\npositions")),
+              family = "Montserrat",
+              fontface = "bold",
+              color = "white",
+              size = 8,
+              lineheight = .9,
+              hjust = .5,
+              vjust = 0) +
+    geom_text(data = df_polar %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont), sum = unique(sum)),
+              aes(1, pos_cont, 
+                  label = sum),
+              family = "Overpass Mono",
+              color = "white",
+              size = 10,
+              lineheight = .9,
+              hjust = .5,
+              vjust = .5) +
+    geom_text(data = df_polar %>% filter(n > 11),
+              aes(1.47, pos, 
+                  label = word, 
+                  color = type,
+                  color = after_scale(colorspace::darken(color, .15)),
+                  hjust = 0,
+                  size = n),
+              family = "Montserrat", 
+              fontface = "bold") +
+    geom_text(data = df_polar %>% filter(n > 11),
+              aes(1.33, pos, 
+                  label = n, 
+                  hjust = .5,
+                  size = n / 2),
+              family = "Overpass Mono", 
+              color = "white") +
+    scale_x_continuous(limits = c(0.5, 2.15)) +
+    scale_color_manual(values = c(bl_col, "#8800d1"), guide = F) +
+    scale_fill_manual(values = c(bl_col, "#8800d1"), guide = F) + 
+    scale_alpha(range = c(.3, 1), guide = F) +
+    scale_size(range = c(3, 15), guide = F) +
+    theme_void()
+
+
+if(save == T){
+  ggsave(here::here("plots", "1_1_jobs_tech_no_spec.pdf"), width = 12, height = 10.5, device = cairo_pdf)
+}
+```
+
+
+# Convert PDFs to PNGs
+
+```{r convert-pdf-to-png, echo = F}
+pdfs <- list.files(here::here("plots"), pattern = "*.pdf")
+
+setwd(here::here("plots", "png"))
+
+for(pdf in pdfs) {
+  pdf_convert(pdf = here::here("plots", pdf), 
+              format = "png", dpi = 750)
+}
+```

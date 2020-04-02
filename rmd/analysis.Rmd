@@ -323,7 +323,7 @@ df_polar %>%
     ) +
     geom_text(data = df_polar %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont), sum = unique(sum)),
               aes(1, pos_cont + 50, 
-                  label = glue::glue("{type}\npositions")),
+                  label = glue::glue("{type}\ntitle terms")),
               family = "Montserrat",
               fontface = "bold",
               color = "white",
@@ -429,7 +429,7 @@ df_polar %>%
     ) +
     geom_text(data = df_polar %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont), sum = unique(sum)),
               aes(1, pos_cont + 50, 
-                  label = glue::glue("{type}\npositions")),
+                  label = glue::glue("{type}\ntitle terms")),
               family = "Montserrat",
               fontface = "bold",
               color = "white",
@@ -446,7 +446,7 @@ df_polar %>%
               lineheight = .9,
               hjust = .5,
               vjust = .5) +
-    geom_text(data = df_polar %>% filter(n > 11),
+    geom_text(data = df_polar %>% filter(n >= 20),
               aes(1.47, pos, 
                   label = word, 
                   color = type,
@@ -455,7 +455,7 @@ df_polar %>%
                   size = n),
               family = "Montserrat", 
               fontface = "bold") +
-    geom_text(data = df_polar %>% filter(n > 11),
+    geom_text(data = df_polar %>% filter(n >= 20),
               aes(1.33, pos, 
                   label = n, 
                   hjust = .5,
@@ -487,4 +487,43 @@ for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", pdf), 
               format = "png", dpi = 750)
 }
+```
+
+
+
+
+# OLD CODE FRAGMENTS
+
+```{r, include = F}
+df %>% 
+  mutate(
+    job_position = case_when(
+      #str_detect(job_title, "Speciali") ~ "Specialist",
+      str_detect(job_title, "Manage") ~ "Manager",
+      str_detect(job_title, "Intern") ~ "Intern",
+      str_detect(job_title, "Strateg") ~ "Strategist",
+      str_detect(job_title, "Writ") ~ "Writer",
+      str_detect(job_title, "Coordinat") ~ "Coordinator",
+      str_detect(job_title, "Engin") ~ "Engineer",
+      str_detect(job_title, "Develop") ~ "Developer",
+      str_detect(job_title, "Consult") ~ "Consultant",
+      str_detect(job_title, "Editor") ~ "Editor",
+      str_detect(job_title, "Director") ~ "Director",
+      str_detect(job_title, "Evangelist") ~ "Evangelist",
+      str_detect(job_title, "Technic") ~ "Technician",
+      str_detect(job_title, "Analyst") ~ "Analyst"
+    ),
+    job_type = case_when(
+      str_detect(job_title, "Optimi") ~ "Optimization",
+      str_detect(job_title, "Marketing") ~ "Marketing",
+      str_detect(job_title, "Develop") ~ "Development",
+      str_detect(job_title, "Social Media") ~ "Social Media",
+      str_detect(job_title, "Sales") ~ "Market Sales",
+      str_detect(job_title, "Content") & str_detect(job_title, "Writ") ~ "Content Writing",
+      str_detect(job_title, "Content") & str_detect(job_title, "Analy") ~ "Content Analysis",
+      str_detect(job_title, "Consult") ~ "Consulting",
+      str_detect(job_title, "Manag") ~ "Management"
+    )
+  ) %>% 
+  dplyr::select(job_title, job_position, job_type) -> t
 ```

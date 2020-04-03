@@ -70,6 +70,9 @@ A bubble map showing company locations by city (excluding "states", "worldwide" 
 
 ![](./plots/png/2_1_map_cities_1.png)
 
+Version with the Backlinko cyan as outline:
+
+![](./plots/png/2_1_map_cities_bl_1.png)
 
 ## 2.2 Hot Spots (States)
 

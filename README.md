@@ -123,7 +123,7 @@ Version with the Backlinko cyan as outline:
 
 # 4	Job Responsibilities
 
-!!! To get the words we are looking for, it would be useful to see a simple wordcloud or a df which the tokenized words (single words and bigrams). That way, we can scann through the list and select htose that fit to job tasks, programming language. What do you think? Open to other appraoches.   
+!!! For section 4. and 5.: To get the words we are looking for, it would be useful to see a simple wordcloud or a df which the tokenized words (single words and bigrams). That way, we can scann through the list and select htose that fit to job tasks, programming language, knowledge of popular tools, etc. What do you think? Open to other appraoches.   
 
 
 ## 4.1	Job related tasks

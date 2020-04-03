@@ -23,7 +23,7 @@ I am not sure if all of them are correct (but hopefully most) but e.g. "speciali
 
 I thought I make a doughnut chart (as we also discussed on the phone). However, the doughnut looked not that good and a bit too fancy - but on a cartesian coordinated these stacked bars looked very nice! So it's a bit more fancy graph but I think that's good for a bit of variety and attention-drawing - I hope you and Brian like it!
 
-!!! Love the stacked bars - looks more professional and business-like. :) 
+!!! Love the stacked bars - looks more professional and business-like. :)
 
 
 ### A Nicer html
@@ -33,7 +33,7 @@ With my new css/html skills it was an easy thing to change the boring colors and
 !!! Great...
 
 
-!!! I put the more advanced research questions in parentheses. Let´s focus on the basic questions for now. I want to get the basics right. In our last project, we (you) put a lot of effort into the large vs other domains and at the end he did not use them. 
+!!! I put the more advanced research questions in parentheses. Let´s focus on the basic questions for now. I want to get the basics right. In our last project, we (you) put a lot of effort into the large vs other domains and at the end he did not use them.
 
 # 1. Job Title
 
@@ -76,21 +76,25 @@ Another, more specified version using a classification scheme:
 
 A bubble map showing company locations by city (excluding "states", "worldwide" and "remote").
 
-
-![](../plots/png/2_1_map_cities_1.png)
-
-
-## 2.2 Hot Spots (States)
-
-A chloropleth hexagonal map showing company locations by state (excluding "states", "worldwide" and "remote"). Hexagonal tile maps are useful to remove the effect of area (i.e. our variable "job offers" is not realted to a state's area).
-
-!!! Do the numbers add up to our sample size? Or am I missing somehting.
-
-![](../plots/png/2_2_map_hex_states_1.png)
+![](./plots/png/2_1_map_cities_1.png)
 
 Version with the Backlinko cyan as outline:
 
-![](../plots/png/2_2_map_hex_states_bl_1.png)
+![](./plots/png/2_1_map_cities_bl_1.png)
+
+## 2.2 Hot Spots (States)
+
+A chloropleth hexagonal map showing company locations by state (excluding "states", "worldwide" and "remote"). Hexagonal tile maps are useful to remove the effect of area (i.e. our variable "job offers" is not related to a state's area).
+
+!!! Do the numbers add up to our sample size? Or am I missing somehting.
+
+-> I had to remove those without any information, those which simply where "US", "states" or "worldwide" and remote positions - only 287 that remained. (But thanks to you comment I found 6 which I did not catch before since they also had an "US" added after the state!)
+
+![](./plots/png/2_2_map_hex_states_1.png)
+
+Version with the Backlinko cyan as outline:
+
+![](./plots/png/2_2_map_hex_states_bl_1.png)
 
 
 # 3. Company Info
@@ -151,7 +155,7 @@ Version with the Backlinko cyan as outline:
 
 ## 5.3	Years of Experience
 
-* What type of SEO jobs require +5 years experience? 
+* What type of SEO jobs require +5 years experience?
 
 
 ## 5.4	Degree Requirements

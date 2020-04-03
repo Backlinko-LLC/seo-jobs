@@ -524,7 +524,7 @@ df_loc <-
 
 ## 2.1 Hot Spots (Cities)
 
-```{r 2-1-map-cities, fig.width = 15, fig.height = 9.71}
+```{r 2-1-map-cities, fig.width = 15, fig.height = 9.7}
 ## add geocodes of cities
 path <- here::here("proc_data", "geocodes.Rds")
 
@@ -592,7 +592,7 @@ sf_map %>%
 
 if(save == T){ 
   ggsave(here::here("plots", "2_1_map_cities.pdf"), 
-         width = 15, height = 9.71, device = cairo_pdf) 
+         width = 15, height = 9.7, device = cairo_pdf) 
 }
 ```
 
@@ -609,6 +609,7 @@ df_states <-
 
 df_states_join <-
   df_loc %>% 
+  mutate(location = str_replace(location, ", United States|, US", "")) %>% 
   mutate(state_mixed = str_extract(location, "[^, ]*$")) %>% 
   left_join(df_states, by = c("state_mixed" = "ISO2")) %>%
   mutate(state = if_else(is.na(state), state_mixed, state)) %>% 
@@ -641,7 +642,7 @@ centroids <- cbind.data.frame(data.frame(gCentroid(map_hex, byid = T),
 ```
 
 
-```{r 2-2-map-states-hex, fig.width = , fig.height = }
+```{r 2-2-map-states-hex, fig.width = 15, fig.height = 9.7}
 df_hex %>%
   replace_na(list(n = 0)) %>% 
   ggplot() +
@@ -663,7 +664,6 @@ df_hex %>%
     geom_text(data = centroids, 
               aes(x = x, y = y - 0.3, label = id_long),
               family = "Montserrat",
-              #color = "grey20",
               fontface = "bold",
               size = 3.2,
               lineheight = 0.85,
@@ -688,13 +688,10 @@ df_hex %>%
 
 if(save == T){ 
   ggsave(here::here("plots", "2_2_map_hex_states.pdf"), 
-         width = 15, height = 9.71, device = cairo_pdf) 
+         width = 15, height = 9.7, device = cairo_pdf) 
 }
 ```
 
-
-```{r 2-2-map-states-hex-prep}
-```
 
 
 # 3. Company Info

@@ -85,12 +85,12 @@ With my new css/html skills it was an easy thing to change the boring colors and
 
 ## 1.1 Most Popular SEO Jobs
 
-We analysed the data on job titles using text mining techniques. In a first step, we tokenize the job titles into single words and visualize their frequency. Stop words and words that appeared less than 7 times were removed to make the graph easier to grasp.
+We analyzed the data on job titles using text mining techniques. In a first step, we tokenize the job titles into single words and visualize their frequency. Stop words and words that appeared less than 7 times were removed to make the graph easier to grasp.
 
 ![](../plots/png/1_1_jobs_word_1.png)
 
 
-In a second step, we analysed sequences of words in the job title. The sorted bar plot shows the most popular consecutive sequences of words (5 or more occurences), colored by category.
+In a second step, we analyzed sequences of words in the job title. The sorted bar plot shows the most popular consecutive sequences of words (5 or more occurrences), colored by category.
 
 ![](../plots/png/1_1_jobs_cat_1.png)
 
@@ -106,7 +106,7 @@ The modified stacked bar plot shows the number of words found per job category a
 
 (Not sure if specialist is technical only. I looked it up and it sounds as "SEO specialist" is a very technical position in general.)
 
-![](../plots/png/1_1_jobs_tech_no_spec_1.png)
+![](../plots/png/1_1_jobs_tech_adj_1.png)
 
 
 # 2. Location

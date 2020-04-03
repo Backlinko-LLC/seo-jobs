@@ -406,7 +406,7 @@ df_polar <-
   count(word, sort = T) %>% 
   mutate(
     type = case_when(
-      str_detect(word, "analy|special|develop|technic|data") ~ "technical",
+      str_detect(word, "analy|develop|technic|data") ~ "technical",
       str_detect(word, "manage|direct|writ|consult|coordinat|edito|market|sale|social|strateg|supervis") ~ "non-technical",
       TRUE ~ "unknown"
     )
@@ -455,7 +455,7 @@ df_polar %>%
       fill = "white"
     ) +
     geom_text(data = df_polar %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont), sum = unique(sum)),
-              aes(1, pos_cont + 50, 
+              aes(1, pos_cont + 35, 
                   label = glue::glue("{type}\ntitle terms")),
               family = "Montserrat",
               fontface = "bold",
@@ -473,7 +473,7 @@ df_polar %>%
               lineheight = .9,
               hjust = .5,
               vjust = .5) +
-    geom_text(data = df_polar %>% filter(n >= 20),
+    geom_text(data = df_polar %>% filter(n >= 5),
               aes(1.47, pos, 
                   label = word, 
                   color = type,
@@ -493,12 +493,12 @@ df_polar %>%
     scale_color_manual(values = c(bl_col, "#8800d1"), guide = F) +
     scale_fill_manual(values = c(bl_col, "#8800d1"), guide = F) + 
     scale_alpha(range = c(.3, 1), guide = F) +
-    scale_size(range = c(3, 15), guide = F) +
+    scale_size(range = c(2, 15), guide = F) +
     theme_void()
 
 
 if(save == T){
-  ggsave(here::here("plots", "1_1_jobs_tech_adj.pdf"), width = 12, height = 10.5, device = cairo_pdf)
+  ggsave(here::here("plots", "1_1_jobs_tech_adj.pdf"), width = 12, height = 14.5, device = cairo_pdf)
 }
 ```
 

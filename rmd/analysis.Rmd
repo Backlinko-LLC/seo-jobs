@@ -58,6 +58,11 @@ knitr::knit_hooks$set(inline = function(x) {
 ## packages
 library(tidyverse)
 library(tidytext)
+library(sf)
+library(maps)
+library(rgeocodio)
+library(geojsonio)
+library(rgeos)
 library(pdftools)
 library(showtext)
 
@@ -78,8 +83,7 @@ theme_set(ggthemes::theme_clean(base_size = 15, base_family = "Montserrat"))
 theme_update(plot.margin = margin(30, 30, 30, 30),
              plot.background = element_rect(color = "white",
                                             fill = "white"),
-             plot.title = element_text(family = "Montserrat SemiBold",
-                                       size = 16,
+             plot.title = element_text(size = 16,
                                        face = "bold",
                                        lineheight = 1.15,
                                        hjust = .5,
@@ -93,12 +97,10 @@ theme_update(plot.margin = margin(30, 30, 30, 30),
                                         size = .8),
              axis.line.y = element_line(color = "black",
                                         size = .8),
-             axis.title.x = element_text(family = "Montserrat SemiBold",
-                                         size = 16,
+             axis.title.x = element_text(size = 16,
                                          face = "bold",
                                          margin = margin(t = 20)),
-             axis.title.y = element_text(family = "Montserrat SemiBold",
-                                         size = 16,
+             axis.title.y = element_text(size = 16,
                                          face = "bold",
                                          margin = margin(r = 20)),
              axis.text = element_text(size = 11,
@@ -143,6 +145,31 @@ theme_flip <-
   theme(panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_line(size = .6,
                                           color = "#eaeaea"))
+
+## theme settings for maps
+theme_map <- 
+  theme_void(base_family = "Montserrat") +
+  theme(legend.direction = "horizontal",
+        legend.box = "horizontal",
+        legend.margin = margin(10, 10, 10, 10),
+        legend.title = element_text(size = 17, 
+                                    face = "bold"),
+        legend.text = element_text(color = "grey33",
+                                   size = 12),
+        plot.margin = margin(15, 5, 15, 5),
+        plot.title = element_text(face = "bold",
+                                  size = 20,
+                                  hjust = .5,
+                                  margin = margin(30, 0, 10, 0)),
+        plot.subtitle = element_text(face = "bold",
+                                     color = "grey33",
+                                     size = 17,
+                                     hjust = .5,
+                                     margin = margin(10, 0, -30, 0)),
+        plot.caption = element_text(size = 14,
+                                    color = "grey33",
+                                    hjust = .97,
+                                    margin = margin(-30, 0, 0, 0)))
 
 ## numeric format for labels
 num_format <- scales::format_format(big.mark = ",", small.mark = ",", scientific = F)
@@ -379,7 +406,7 @@ df_polar <-
   count(word, sort = T) %>% 
   mutate(
     type = case_when(
-      str_detect(word, "analy|engine|develop|technic|optimi") ~ "technical",
+      str_detect(word, "analy|special|develop|technic|data") ~ "technical",
       str_detect(word, "manage|direct|writ|consult|coordinat|edito|market|sale|social|strateg|supervis") ~ "non-technical",
       TRUE ~ "unknown"
     )
@@ -471,9 +498,292 @@ df_polar %>%
 
 
 if(save == T){
-  ggsave(here::here("plots", "1_1_jobs_tech_no_spec.pdf"), width = 12, height = 10.5, device = cairo_pdf)
+  ggsave(here::here("plots", "1_1_jobs_tech_adj.pdf"), width = 12, height = 10.5, device = cairo_pdf)
 }
 ```
+
+
+
+
+# 2. Location
+
+* Where do companies hire SEOs? (beautiful US Map)
+
+```{r map-prep}
+## usa map
+states <- 
+  st_as_sf(map("state", plot = F, fill = T)) %>% 
+  st_transform(2163)
+
+df_loc <-
+  df %>% 
+  group_by(location) %>% 
+  count(sort = T) %>% 
+  ungroup()
+```
+
+## 2.1 Hot Spots (Cities)
+
+```{r 2-1-map-cities, fig.width = 15, fig.height = 9.71}
+## add geocodes of cities
+path <- here::here("proc_data", "geocodes.Rds")
+
+if(file.exists(path)){
+  ## load geocodes or...
+  df_geo <- readRDS(path)
+}else{
+  ## grab and save geocodes
+  df_geo <- 
+    gio_batch_geocode(df_loc$location) %>% 
+    unnest(response_results, .preserve = response_warnings) %>% 
+    dplyr::select(query, formatted_address, location.lat, location.lng) %>% 
+    group_by(query) %>% 
+    slice(1)
+  
+  saveRDS(df_geo, path)
+}
+
+sf_map <-
+  df_loc %>% 
+  left_join(df_geo, by = c("location" = "query")) %>% 
+  filter(!is.na(location.lng)) %>% 
+  st_as_sf(coords = c("location.lng", "location.lat"), 
+           crs = 4326) %>% 
+  st_transform(st_crs(states)) %>% 
+  st_crop(st_bbox(states))
+  
+sf_map %>% 
+  arrange(-n) %>% 
+  ggplot() +
+    geom_sf(data = states, 
+            color = colorspace::darken(bl_col, .05), 
+            alpha = .3,
+            lwd = 5) +
+    geom_sf(data = states, 
+            color = "white", 
+            fill = "#cedbd7",
+            lwd = .5) +
+    geom_sf(aes(size = n),
+            color = "white",
+            #alpha = .5,
+            show.legend = "point") +
+    geom_sf(aes(size = n), 
+            shape = 21, 
+            #color = bl_col,
+            color = colorspace::darken(bl_col, .2),
+            fill = NA,
+            stroke = .4,
+            show.legend = "point") +
+    geom_sf(aes(size = n, color = n), 
+            color = bl_col,
+            alpha = .1,
+            show.legend = "point") +
+    scale_size(range = c(3, 30), 
+               breaks = c(1, 10, 25, 50, 100),
+               name = "Number of job offers") +
+    guides(size = guide_legend(title.position = "top", 
+                                title.hjust = .5, 
+                                nrow = 1,
+                                label.position = "bottom",
+                                override.aes = list(shape = 21, color = bl_col, fill = colorspace::lighten(bl_col, .9), stroke = 1))) +
+    theme_map +
+    theme(legend.position = c(.2, .1),
+          legend.title = element_text(margin = margin(0, 0, -5, 0)),
+          legend.title = element_text(margin = margin(-10, 0, 0, 0)))
+
+if(save == T){ 
+  ggsave(here::here("plots", "2_1_map_cities.pdf"), 
+         width = 15, height = 9.71, device = cairo_pdf) 
+}
+```
+
+
+## 2.2 Hot Spots (States)
+
+```{r map-states-hex-prep}
+## data by states
+df_states <-
+  readr::read_csv(here::here("raw_data", "50_us_states_all_data.csv"), 
+                  col_names = F) %>% 
+  dplyr::select(state = "X2", ISO2 = "X3")%>% 
+  add_row(state = "District of Colombia", ISO2 = "DC")
+
+df_states_join <-
+  df_loc %>% 
+  mutate(state_mixed = str_extract(location, "[^, ]*$")) %>% 
+  left_join(df_states, by = c("state_mixed" = "ISO2")) %>%
+  mutate(state = if_else(is.na(state), state_mixed, state)) %>% 
+  group_by(state) %>% 
+  count(sort = T) %>% 
+  ungroup()
+
+## hex map
+map_hex <- geojson_read(here::here("raw_data", "us_states_hexgrid.geojson.json"),  what = "sp")
+
+map_hex@data <-
+  map_hex@data %>%
+  mutate(google_name = gsub(" \\(United States\\)", "", google_name))
+
+map_hex_fortified <- tidy(map_hex, region = "google_name")
+
+## combine data
+df_hex <- 
+  map_hex_fortified %>%
+  left_join(df_states_join, by = c("id" = "state"))
+
+## centroids for labels
+centroids <- cbind.data.frame(data.frame(gCentroid(map_hex, byid = T), 
+                                         id = map_hex@data$iso3166_2,
+                                         id_long = str_wrap(map_hex@data$google_name, 12))) %>% 
+  left_join(df_hex, by = c("id_long" = "id")) %>% 
+  group_by(id) %>% 
+  slice(1) %>% 
+  replace_na(list(n = 0))
+```
+
+
+```{r 2-2-map-states-hex, fig.width = , fig.height = }
+df_hex %>%
+  replace_na(list(n = 0)) %>% 
+  ggplot() +
+    geom_polygon(aes(long, lat, 
+                     group = group, 
+                     fill = n), 
+                 #color = colorspace::darken(bl_col, .1),
+                 color = "grey60",
+                 lwd = .8) +
+    geom_text(data = centroids, 
+              aes(x = x, y = y + 0.35,
+                  label = n,
+                  alpha = n),
+              family = "Montserrat",
+              fontface = "bold",
+              size = 7.5,
+              color = colorspace::darken(bl_col, .6),
+              vjust = .2) +
+    geom_text(data = centroids, 
+              aes(x = x, y = y - 0.3, label = id_long),
+              family = "Montserrat",
+              #color = "grey20",
+              fontface = "bold",
+              size = 3.2,
+              lineheight = 0.85,
+              vjust = 1) +
+    coord_map() + 
+    scale_fill_gradient(low = "grey95", 
+                        high = colorspace::darken(bl_col, .1), 
+                        name = "Number of job offers",
+                        limits = c(0, 50),
+                        breaks = seq(0, 50, by = 5)) +
+    scale_alpha(range = c(.25, 1), 
+                guide = F) +
+    guides(fill = guide_colorbar(barheight = unit(5, units = "mm"),  
+                                 barwidth = unit(150, units = "mm"),
+                                 direction = "horizontal",
+                                 ticks.colour = "#e8d8c3",
+                                 title.position = "top",
+                                 title.hjust = 0.5)) +
+    theme_map +
+    theme(legend.position = c(.5, .9),
+          legend.text = element_text(size = 14))
+
+if(save == T){ 
+  ggsave(here::here("plots", "2_2_map_hex_states.pdf"), 
+         width = 15, height = 9.71, device = cairo_pdf) 
+}
+```
+
+
+```{r 2-2-map-states-hex-prep}
+```
+
+
+# 3. Company Info
+
+## 3.1	Size
+
+* How large are companies that hire? 
+
+* Do larger companies require more specialized tasks? 
+
+* Do larger companies require a formal education?
+
+
+## 3.2	Revenue 
+
+* What type of skill sets are required by high-revenue companies?
+
+
+## 3.3	Sector/Industry
+
+* What type of companies hire SEOs? 
+
+
+## 3.4	Company Rating
+
+* Do lower rated companies pay less (salary)? Which companies have the highest ratings? 
+
+
+# 4	Job Responsibilities
+
+## 4.1	Job related tasks
+
+* What job tasks are most often mentioned? 
+
+
+## 4.2	Deep dive into job tasks (PPC, content management, technical, etc.)
+
+* What technical SEO tasks are most often required?
+
+
+# 5	Job Requirements
+
+## 5.1	Programming Languages
+
+* What programming languages are most often required? 
+
+* What languages are most often required in combination (e.g. Html, CSS)
+
+
+## 5.2	Knowledge of Popular Tools
+
+* What tools are most often required?
+
+
+## 5.3	Years of Experience
+
+* What type of SEO jobs require +5 years experience? 
+
+
+## 5.4	Degree Requirements
+
+* What type of degrees are most often required (BS vs MS vs None)? 
+
+
+# 6	Salaries
+
+## 6.1	Salary Ranges
+
+* What are the typcial salary ranges for SEO jobs?
+
+
+## 6.2	Salaries per Location
+
+* Where do companies pay the most/least?
+
+
+## 6.3	Salaries for different positions
+
+* What are the highest/lowest paying SEO positions?
+
+
+## 6.4	Salaries per job requirements
+
+* Do positions with programming languages pay significantly more?
+
+
+
+
 
 
 # Convert PDFs to PNGs

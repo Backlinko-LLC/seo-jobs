@@ -111,13 +111,24 @@ The modified stacked bar plot shows the number of words found per job category a
 
 # 2. Location
 
-* Where do companies hire SEOs? (beautiful US Map)
-
+* Where do companies hire SEOs?
 
 ## 2.1 Hot Spots (Cities)
 
+A bubble map showing company locations by city (excluding "states", "worldwide" and "remote").
+
+![](../plots/png/2_1_map_cities_1.png)
+
 
 ## 2.2 Hot Spots (States)
+
+A chloropleth hexagonal map showing company locations by state (excluding "states", "worldwide" and "remote"). Hexagonal tile maps are useful to remove the effect of area (i.e. our variable "job offers" is not realted to a state's area).
+
+![](../plots/png/2_2_map_hex_states_1.png)
+
+Version with the Backlinko cyan as outline:
+
+![](../plots/png/2_2_map_hex_states_bl_1.png)
 
 
 # 3. Company Info

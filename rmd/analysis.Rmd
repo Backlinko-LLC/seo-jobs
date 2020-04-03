@@ -556,7 +556,8 @@ sf_map %>%
   arrange(-n) %>% 
   ggplot() +
     geom_sf(data = states, 
-            color = colorspace::darken(bl_col, .05), 
+            #color = colorspace::darken(bl_col, .05), 
+            color = "grey60",
             alpha = .3,
             lwd = 5) +
     geom_sf(data = states, 
@@ -565,11 +566,9 @@ sf_map %>%
             lwd = .5) +
     geom_sf(aes(size = n),
             color = "white",
-            #alpha = .5,
             show.legend = "point") +
     geom_sf(aes(size = n), 
             shape = 21, 
-            #color = bl_col,
             color = colorspace::darken(bl_col, .2),
             fill = NA,
             stroke = .4,
@@ -589,7 +588,7 @@ sf_map %>%
     theme_map +
     theme(legend.position = c(.2, .1),
           legend.title = element_text(margin = margin(0, 0, -5, 0)),
-          legend.title = element_text(margin = margin(-10, 0, 0, 0)))
+          legend.text = element_text(margin = margin(-10, 0, 0, 0)))
 
 if(save == T){ 
   ggsave(here::here("plots", "2_1_map_cities.pdf"), 

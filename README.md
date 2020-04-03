@@ -23,11 +23,17 @@ I am not sure if all of them are correct (but hopefully most) but e.g. "speciali
 
 I thought I make a doughnut chart (as we also discussed on the phone). However, the doughnut looked not that good and a bit too fancy - but on a cartesian coordinated these stacked bars looked very nice! So it's a bit more fancy graph but I think that's good for a bit of variety and attention-drawing - I hope you and Brian like it!
 
+!!! Love the stacked bars - looks more professional and business-like. :) 
+
 
 ### A Nicer html
 
 With my new css/html skills it was an easy thing to change the boring colors and fonts to match backlinko's and our plot design ;)
 
+!!! Great...
+
+
+!!! I put the more advanced research questions in parentheses. Let´s focus on the basic questions for now. I want to get the basics right. In our last project, we (you) put a lot of effort into the large vs other domains and at the end he did not use them. 
 
 # 1. Job Title
 
@@ -62,27 +68,29 @@ Another, more specified version using a classification scheme:
 
 # 2. Location
 
-Where do companies hire SEOs?
+* Where do companies hire SEOs?
+
+!!! Looks great!
 
 ## 2.1 Hot Spots (Cities)
 
 A bubble map showing company locations by city (excluding "states", "worldwide" and "remote").
 
-![](./plots/png/2_1_map_cities_1.png)
 
-Version with the Backlinko cyan as outline:
+![](../plots/png/2_1_map_cities_1.png)
 
-![](./plots/png/2_1_map_cities_bl_1.png)
 
 ## 2.2 Hot Spots (States)
 
 A chloropleth hexagonal map showing company locations by state (excluding "states", "worldwide" and "remote"). Hexagonal tile maps are useful to remove the effect of area (i.e. our variable "job offers" is not realted to a state's area).
 
-![](./plots/png/2_2_map_hex_states_1.png)
+!!! Do the numbers add up to our sample size? Or am I missing somehting.
+
+![](../plots/png/2_2_map_hex_states_1.png)
 
 Version with the Backlinko cyan as outline:
 
-![](./plots/png/2_2_map_hex_states_bl_1.png)
+![](../plots/png/2_2_map_hex_states_bl_1.png)
 
 
 # 3. Company Info
@@ -91,14 +99,16 @@ Version with the Backlinko cyan as outline:
 
 * How large are companies that hire?
 
-* Do larger companies require more specialized tasks?
+(* Do larger companies require more specialized tasks?)
 
-* Do larger companies require a formal education?
+(* Do larger companies require a formal education?)
 
 
 ## 3.2	Revenue
 
-* What type of skill sets are required by high-revenue companies?
+* !!! Do mainly high-revenue comapnies hire SEOs? i.e. showing distribution or something similiar
+
+(* What type of skill sets are required by high-revenue companies?)
 
 
 ## 3.3	Sector/Industry
@@ -108,19 +118,21 @@ Version with the Backlinko cyan as outline:
 
 ## 3.4	Company Rating
 
-* Do lower rated companies pay less (salary)? Which companies have the highest ratings?
+* (Do lower rated companies pay less (salary)? Which companies have the highest ratings?)
 
 
 # 4	Job Responsibilities
+
+!!! To get the words we are looking for, it would be useful to see a simple wordcloud or a df which the tokenized words (single words and bigrams). That way, we can scann through the list and select htose that fit to job tasks, programming language. What do you think? Open to other appraoches.   
+
 
 ## 4.1	Job related tasks
 
 * What job tasks are most often mentioned?
 
-
 ## 4.2	Deep dive into job tasks (PPC, content management, technical, etc.)
 
-* What technical SEO tasks are most often required?
+(* What technical SEO tasks are most often required?)
 
 
 # 5	Job Requirements
@@ -139,7 +151,7 @@ Version with the Backlinko cyan as outline:
 
 ## 5.3	Years of Experience
 
-* What type of SEO jobs require +5 years experience?
+* What type of SEO jobs require +5 years experience? 
 
 
 ## 5.4	Degree Requirements
@@ -161,9 +173,9 @@ Version with the Backlinko cyan as outline:
 
 ## 6.3	Salaries for different positions
 
-* What are the highest/lowest paying SEO positions?
+(* What are the highest/lowest paying SEO positions?)
 
 
 ## 6.4	Salaries per job requirements
 
-* Do positions with programming languages pay significantly more?
+(* Do positions with programming languages pay significantly more?)

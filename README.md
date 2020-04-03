@@ -10,10 +10,12 @@ We need to agree on names of positions in general and which fall into technical/
 
 I did some text mining and defined for now technical and non-technical positions manually looking at the resulting list without stop words. I decided to clasify as follows:
 
-* technical ~  `analy|special|engine|develop|technic|optimi`
-* non-technical ~  `manage|direct|writ|consult|coordinat|edito|market|sale|social|strateg|supervis`
+!!!This is already a very good selection. I would remove engin and optimi as they are part of "Search Engine Optimization". They can be part of both worlds,  for example an "Search Engine Optimization Content Writer". Note: May change in the future. Therefore, for now there is now need to report on key takeaways. 
 
-I am not sure if all of them are correct (but hopefully most) but e.g. "specialist" is a term I would have another look at. I searched descriptions of specialists and they read as if SEO specialist is a common term for a technical position. Correct?
+* technical ~  `analy|special|develop|technic|data`
+* non-technical ~  `manage|direct|writ|consult|coordinat|edito|market|sale|social|strateg|supervis|content|editor|`
+
+I am not sure if all of them are correct (but hopefully most) but e.g. "specialist" is a term I would have another look at. I searched descriptions of specialists and they read as if SEO specialist is a common term for a technical position. !!! Not really, there are also "Marketing Specialist" positions. I think it would make sense to remove that from the technical-jobs category. 
 
 
 ### Chart Type Job Type

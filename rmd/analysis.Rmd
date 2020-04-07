@@ -63,6 +63,7 @@ library(maps)
 library(rgeocodio)
 library(geojsonio)
 library(rgeos)
+library(ggwordcloud)
 library(patchwork)
 library(pdftools)
 library(showtext)
@@ -220,7 +221,8 @@ df %>%
     geom_text(aes(label = n),
               family = "Overpass Mono",
               color = "white",
-              face = "bold",
+              fontface = "bold",
+              size = 2.7,
               hjust = 1,
               nudge_y = -1) +
     coord_flip() +
@@ -269,7 +271,8 @@ ggplot(df_job_ngrams,
     geom_text(aes(label = n),
               family = "Overpass Mono",
               color = "white",
-              face = "bold",
+              fontface = "bold",
+              size = 2.7,
               hjust = 1,
               nudge_y = -.7) +
     coord_flip() +
@@ -930,7 +933,7 @@ df_rev_skills <-
   ) %>% 
   mutate(word = if_else(word == "teams", "team", word))
 
-set.seed(2020)
+set.seed(123)
 
 cloud_low <-
   df_rev_skills %>% 
@@ -945,7 +948,7 @@ cloud_low <-
       shape = "square"
     ) +
     rcartocolor::scale_color_carto_c(palette = "Emrld") +
-    scale_size_area(max_size = 9) +
+    scale_size_area(max_size = 8) +
     labs(title = "\nCompanies with revenues lower than $100M") +
     theme_minimal()
 
@@ -962,18 +965,18 @@ cloud_high <-
       shape = "square"
     ) +
     rcartocolor::scale_color_carto_c(palette = "Emrld") +
-    scale_size_area(max_size = 9) +
+    scale_size_area(max_size = 8) +
     labs(title = "\nCompanies with revenues higher than $100M") +
     theme_minimal()
 
 ## vertical allignment
 (cloud_low / cloud_high) * 
   theme(plot.title = element_text(family = "Montserrat", size = 14, face = "bold", 
-                                  hjust = .5, margin = margin(b = 15)))
+                                  hjust = .5, margin = margin(b = -30)))
 
 if(save == T){ 
   ggsave(here::here("plots", "3_2_revenue_words_vertical.pdf"), 
-         width = 10, height = 7, device = cairo_pdf) 
+         width = 11, height = 7, device = cairo_pdf) 
 }
 
 
@@ -984,7 +987,7 @@ if(save == T){
 
 if(save == T){ 
   ggsave(here::here("plots", "3_2_revenue_words_horizontal.pdf"), 
-         width = 16, height = 5.1, device = cairo_pdf) 
+         width = 11, height = 5, device = cairo_pdf) 
 }
 ```
 
@@ -1008,7 +1011,7 @@ df %>%
               fontface = "bold",
               hjust = 0,
               nudge_y = 3,
-              size = 2.5) +
+              size = 2.7) +
     coord_flip() +
     scale_y_continuous(expand = c(.01, .01),
                        limits = c(0, 345),
@@ -1038,7 +1041,7 @@ df %>%
               fontface = "bold",
               hjust = 0,
               nudge_y = 3,
-              size = 2.5) +
+              size = 2.7) +
     coord_flip() +
     scale_y_continuous(expand = c(.01, .01),
                        limits = c(0, 265),

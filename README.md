@@ -1,4 +1,59 @@
-# SEO Job Analysis
+---
+title: "SEO Jobs Analysis"
+author: "Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: paper
+    highlight: kate
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float: true
+editor_options:
+  chunk_output_type: console
+---
+
+<style>
+.list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
+  background-color: #00d188;
+  border-color: #00d188;
+}
+
+body {
+  font-family: montserrat;
+  color: #444444;
+  font-size: 14px;
+}
+
+h1 {
+  font-weight: bold;
+  font-size: 28px;
+}
+
+h1.title {
+  font-size: 30px;
+  color: #00d188;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 18px;
+}
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.showtext = TRUE)
+
+knitr::knit_hooks$set(inline = function(x) {
+  prettyNum(x, big.mark = ",", small.mark = ",", scientific = F)
+})
+```
+
 
 # Internal Comments & Questions
 
@@ -8,14 +63,14 @@
 
 We need to agree on names of positions in general and which fall into technical/non-technical groups.
 
-I did some text mining and defined for now technical and non-technical positions manually looking at the resulting list without stop words. I decided to classify as follows:
+I did some text mining and defined for now technical and non-technical positions manually looking at the resulting list without stop words. I decided to clasify as follows:
 
-!!!This is already a very good selection. I would remove engin and optimi as they are part of "Search Engine Optimization". They can be part of both worlds,  for example an "Search Engine Optimization Content Writer". Note: May change in the future. Therefore, for now there is now need to report on key takeaways.
+* technical ~  `analy|special|engine|develop|technic|optimi`
+* non-technical ~  `manage|direct|writ|consult|coordinat|edito|market|sale|social|strateg|supervis`
 
-I am not sure if all of them are correct (but hopefully most) but e.g. "specialist" is a term I would have another look at. I searched descriptions of specialists and they read as if SEO specialist is a common term for a technical position. !!! Not really, there are also "Marketing Specialist" positions. I think it would make sense to remove that from the technical-jobs category.
+!!!This is already a very good selection. I would remove engin and optimi as they are part of "Search Engine Optimization". They can be part of both worlds, for example an "Search Engine Optimization Content Writer". Note: May change in the future. Therefore, for now there is now need to report on key takeaways.
 
-* technical ~  `analy|develop|technic|data`
-* non-technical ~  `manage|direct|writ|consult|coordinat|edito|market|sale|social|strateg|supervis|content|editor|`
+I am not sure if all of them are correct (but hopefully most) but e.g. "specialist" is a term I would have another look at. I searched descriptions of specialists and they read as if SEO specialist is a common term for a technical position. Correct?
 
 --> Okay, I have included an adjusted version, keeping the first as well so Brian can decide (or we can go back to it later or simply remove it if it's bs anyway).
 
@@ -28,12 +83,16 @@ I thought I make a doughnut chart (as we also discussed on the phone). However, 
 
 ### A Nicer html
 
-With my new css/html skills it was an easy thing to change the boring colors and fonts to match backlinko's and our plot design ;)
+With my new css/html skills it was an easy thing to change the boring colors and fonts to match backlinkos and our plot design ;)
 
 !!! Great...
 
 
+## Priorities
+
 !!! I put the more advanced research questions in parentheses. Let´s focus on the basic questions for now. I want to get the basics right. In our last project, we (you) put a lot of effort into the large vs other domains and at the end he did not use them.
+
+--> Argh, in my versio nthis was not included yet so I did all plots with regard to company info beside specialized tasks which is a bit difficult anyway (more detailed comments below for each section). Going to ingore questions in parentheses from now on.
 
 # 1. Job Title
 
@@ -58,10 +117,7 @@ The modified stacked bar plot shows the number of words found per job category a
 
 ![](./plots/png/1_1_jobs_tech_1.png)
 
-Another, more specified version using a classification scheme:
-
-* technical ~  `analy|special|develop|technic|data`
-* non-technical ~  `manage|direct|writ|consult|coordinat|edito|market|sale|social|strateg|supervis`
+(Not sure if specialist is technical only. I looked it up and it sounds as "SEO specialist" is a very technical position in general.)
 
 ![](./plots/png/1_1_jobs_tech_adj_1.png)
 
@@ -69,8 +125,6 @@ Another, more specified version using a classification scheme:
 # 2. Location
 
 * Where do companies hire SEOs?
-
-!!! Looks great!
 
 ## 2.1 Hot Spots (Cities)
 
@@ -82,13 +136,10 @@ Version with the Backlinko cyan as outline:
 
 ![](./plots/png/2_1_map_cities_bl_1.png)
 
+
 ## 2.2 Hot Spots (States)
 
-A chloropleth hexagonal map showing company locations by state (excluding "states", "worldwide" and "remote"). Hexagonal tile maps are useful to remove the effect of area (i.e. our variable "job offers" is not related to a state's area).
-
-!!! Do the numbers add up to our sample size? Or am I missing somehting.
-
--> I had to remove those without any information, those which simply where "US", "states" or "worldwide" and remote positions - only 287 that remained. (But thanks to you comment I found 6 which I did not catch before since they also had an "US" added after the state!)
+A chloropleth hexagonal map showing company locations by state (excluding "states", "worldwide" and "remote"). Hexagonal tile maps are useful to remove the effect of area (i.e. our variable "job offers" is not realted to a state's area).
 
 ![](./plots/png/2_2_map_hex_states_1.png)
 
@@ -103,26 +154,71 @@ Version with the Backlinko cyan as outline:
 
 * How large are companies that hire?
 
-(* Do larger companies require more specialized tasks?)
+![](./plots/png/3_1_size_histo_1.png)
 
-(* Do larger companies require a formal education?)
+* (Do larger companies require more specialized tasks?)
+
+--> ??? What do we define as "more specialized tasks"?
+
+
+* (Do larger companies require a formal education?)
+
+We extracted from the job descriptiosn the required/desired degree:
+
+* Bachelors ~ `B.Ba.|B.Sc.|BBa|BSc|BBA|BSC|Bachelors`
+* Masters ~ `M.Ba.|M.Sc.|MBa|MSc|MBA|MSC|Masters`
+* Doctorates ~ `Ph.D.|PhD|Doctorate`
+
+![](./plots/png/3_1_size_edu_1.png)
+
+In total we found 39 posisition mentioning Bachelors, 10 Masters and only one with Doctorate.
 
 
 ## 3.2	Revenue
 
-* !!! Do mainly high-revenue comapnies hire SEOs? i.e. showing distribution or something similiar
+* Which education level is required by high-revenue companies?
 
-(* What type of skill sets are required by high-revenue companies?)
+-> I've added this since it's a low hanging fruit after the last section ;)
+-> 3 different versiomn to deal with poverplotting of the x-axis labels
+
+![](./plots/png/3_2_revenue_edu_small_1.png)
+
+![](./plots/png/3_2_revenue_edu_dodge_1.png)
+
+![](./plots/png/3_2_revenue_edu_angle_1.png)
+
+
+* (What type of skill sets are required by high-revenue companies?)
+
+--> ??? Can you come up with a list or should I try to extract common words? Don't know yet how to determine those terms between skills and... yeah, what does mark the end of the skill section?
+
+--> So I tokenized the description and removed stop words and numbers as well as manually non-sense/non-skill-related words. There might be more but if we keep it we can have a closer look I would say. Only later realized it has less priority. However, these wordclouds can be used in another context for sure anyway.
+
+
+![](./plots/png/3_2_revenue_words_vertical_1.png)
+
+![](./plots/png/3_2_revenue_words_horizontal_1.png)
 
 
 ## 3.3	Sector/Industry
 
-* What type of companies hire SEOs?
+* Which sectors do mainly hire SEOs?
+
+![](./plots/png/3_3_sector_counts_1.png)
+
+
+* Which industries are interested in filling SEO positions?
+
+![](./plots/png/3_3_industry_counts_1.png)
 
 
 ## 3.4	Company Rating
 
-* (Do lower rated companies pay less (salary)? Which companies have the highest ratings?)
+* (Do lower rated companies pay less (salary)?)
+
+![](./plots/png/3_4_rating_salary_1.png)
+
+* (Which companies have the highest ratings?)
 
 
 # 4	Job Responsibilities
@@ -136,7 +232,7 @@ Version with the Backlinko cyan as outline:
 
 ## 4.2	Deep dive into job tasks (PPC, content management, technical, etc.)
 
-(* What technical SEO tasks are most often required?)
+* (What technical SEO tasks are most often required?)
 
 
 # 5	Job Requirements
@@ -177,9 +273,9 @@ Version with the Backlinko cyan as outline:
 
 ## 6.3	Salaries for different positions
 
-(* What are the highest/lowest paying SEO positions?)
+* (What are the highest/lowest paying SEO positions?)
 
 
 ## 6.4	Salaries per job requirements
 
-(* Do positions with programming languages pay significantly more?)
+* (Do positions with programming languages pay significantly more?)

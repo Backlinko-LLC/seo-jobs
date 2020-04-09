@@ -294,7 +294,7 @@ if(save == T){
 ```
 
 
-We  manually classified in technical and non-technical positions, removing all words that are no specific to any of the both categories. This modified stacked bar plot shows the number of words found per job category and, additionally as another stacked bar next to it, the most common words per category (with labels for words that occured at least 20 times). The height of the stacks indicates as well the number, the width is arbitrary.
+We manually classified in technical and non-technical positions, removing all words that are no specific to any of the both categories. This modified stacked bar plot shows the number of words found per job category and, additionally as another stacked bar next to it, the most common words per category (with labels for words that occured at least 20 times). The height of the stacks indicates as well the number, the width is arbitrary.
 
 ```{r 1-1-popular-job-type, fig.width = 12, fig.height = 12}
 ## technical: analyst, specialist, engineer, developer, technician, optimization,
@@ -738,7 +738,7 @@ df_size %>%
     scale_y_continuous(expand = c(.0075, .0075)) +
     scale_fill_manual(values = c("grey60", bl_col),
                       guide = F) +
-    labs(x = "Number of Employees", 
+    labs(x = "Number of employees", 
          y = "Number of companies") +
     theme(panel.grid.major.x = element_blank())
 
@@ -1096,8 +1096,66 @@ if(save == T){
 }
 ```
 
+* (Which companies have the highest ratings?)
+
 
 # 4	Job Responsibilities
+
+```{r data-prep-tasks}
+df_tasks_words <-
+  df %>% 
+  unnest_tokens(word, description, token = "words") %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = T)
+
+df_tasks_words %>% 
+  filter(
+    word != "seo",
+    n >= 10
+  ) %>% 
+  ggplot(aes(label = word, size = n, color = n)) +
+    geom_text_wordcloud(
+      family = "Montserrat",
+      fontface = "bold",
+      shape = "square"
+    ) +
+    rcartocolor::scale_color_carto_c(palette = "ag_Sunset") +
+    scale_size_area(max_size = 20) +
+    theme_minimal()
+
+if(save == T){ 
+  ggsave(here::here("plots", "4_cloud_word2.pdf"), 
+         width = 25, height = 20, device = cairo_pdf) 
+}
+
+df_tasks_sequ <- 
+  df %>% 
+  unnest_tokens(word, description, token = "ngrams") %>% 
+  anti_join(stop_words) %>% 
+  count(sequ, sort = T) 
+
+df_tasks_sequ %>% 
+  filter(
+    word != "seo",
+    n >= 10
+  ) %>% 
+  ggplot(aes(label = sequ, size = n, color = n)) +
+    geom_text_wordcloud(
+      family = "Montserrat",
+      fontface = "bold",
+      shape = "square"
+    ) +
+    rcartocolor::scale_color_carto_c(palette = "ag_Sunset") +
+    scale_size_area(max_size = 20) +
+    theme_minimal()
+
+if(save == T){ 
+  ggsave(here::here("plots", "4_cloud_sequ.pdf"), 
+         width = 25, height = 20, device = cairo_pdf) 
+}
+```
+
+
 
 ## 4.1	Job related tasks
 
@@ -1108,6 +1166,8 @@ if(save == T){
 
 * What technical SEO tasks are most often required?
 
+--> How should this differ to 1.1 where we looked into technical/nontechnical positions? Since I already showed the most common terms here i think it is (almost?) the same plot.
+
 
 # 5	Job Requirements
 
@@ -1115,22 +1175,172 @@ if(save == T){
 
 * What programming languages are most often required? 
 
+I for now use the programming languages listed by the SO yearly survey:
+JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, TypeScript, C, Ruby, Go, Assembly, Swift, Kotlin, R, VBA, Objective-C, Scala, Rust, Dart, Elixir, Clojure, WebAssembly + Julia
+
+```{r data-programming-languages}
+df_prog <-
+  df %>% 
+  mutate(
+    JavaScript = str_count(description, " JavaScript "),
+    HTML = str_count(description, " HTML "),
+    CSS = str_count(description, " CSS "),
+    SQL = str_count(description, " SQL "),
+    Python = str_count(description, " Python "),
+    Java = str_count(description, " Java "),
+    Bash = str_count(description, " Bash "),
+    Shell = str_count(description, " Shell "),
+    Powershell = str_count(description, " Powershell "),
+    `C#` = str_count(description, " C# "),
+    PHP = str_count(description, " PHP "),
+    `C++` = str_count(description, " C++ | CPP"),
+    TypeScript = str_count(description, " TypeScript "),
+    C = str_count(description, " C "),
+    Ruby = str_count(description, " Ruby "),
+    Go = str_count(description, " Go "),
+    Assembly = str_count(description, " Assembly "),
+    Swift = str_count(description, " Swift "),
+    Kotlin = str_count(description, " Kotlin "),
+    R = str_count(description, " R "),
+    VBA = str_count(description, " VBA "),
+    ObjectiveC = str_count(description, " Objective-C "),
+    Scala = str_count(description, " Scala "),
+    Rust = str_count(description, " Rust "),
+    Dart = str_count(description, " Dart "),
+    Elixir = str_count(description, " Elixir "),
+    Clojure = str_count(description, " Clojure "),
+    WebAssembly = str_count(description, " WebAssembly "),
+    Julia = str_count(description, " Julia ")
+  ) %>% 
+  dplyr::select(JavaScript:Julia)
+```
+
+
+```{r 5-1-programming-languages, fig.width = 12, fig.height = 7}
+df_prog %>% 
+  pivot_longer(
+    cols = JavaScript:Julia,
+    names_to = "language",
+    values_to = "count"
+  ) %>% 
+  filter(count > 0) %>% 
+  group_by(language) %>% 
+  summarize(count = n()) %>% 
+  ungroup() %>% 
+  mutate(language = fct_reorder(language, count)) %>% 
+  ggplot(aes(language, count)) +
+    geom_segment(aes(xend = language, yend = 0),
+                 color = bl_col,
+                 size = 3) + 
+    geom_point(shape = 21,
+               color = bl_col,
+               fill = "white",
+               size = 10,
+               stroke = 1) +
+    geom_text(aes(label = count),
+              family = "Overpass Mono",
+              color = bl_col,
+              fontface = "bold",
+              size = 3.3,
+              hjust = .5,
+              nudge_y = 0) +
+    coord_flip() +
+    scale_y_continuous(expand = c(.02, .02),
+                       limits = c(0, 125),
+                       breaks = seq(0, 120, by = 20)) +
+    theme_flip +
+    theme(axis.text.y = element_text(size = 14)) +
+    labs(x = NULL,
+         y = "Number of job descriptions mentioning each programming language")
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_prog.pdf"), 
+         width = 12, height = 7, device = cairo_pdf) 
+}
+```
+
+
 * What languages are most often required in combination (e.g. Html, CSS)
+
+```{r 5-1-programming-languages, fig.width = 12, fig.height = 7.5}
+df_prog %>% 
+  mutate(id = row_number()) %>% 
+  pivot_longer(
+    cols = JavaScript:Julia,
+    names_to = "language",
+    values_to = "count"
+  ) %>% 
+  group_by(id) %>% 
+  mutate(sum = sum(count)) %>% 
+  filter(
+    sum > 1, 
+    count > 0
+  ) %>% 
+  arrange(id) %>% 
+  pivot_wider(
+    id_cols = id,
+    names_from = language,
+    values_from = count
+  ) %>% 
+  ungroup() %>% 
+  dplyr::select(-id) %>% 
+  mutate_all(funs(ifelse(. == 1, deparse(substitute(.)), NA))) %>% 
+  unite("combination", sep = " + ", remove = T, na.rm = T) %>% 
+  group_by(combination) %>% 
+  count() %>% 
+  ungroup() %>% 
+  filter(combination != "") %>% 
+  mutate(combination = fct_reorder(combination, n)) %>% 
+  ggplot(aes(combination, n)) +
+    geom_segment(aes(xend = combination, yend = 0),
+                 color = bl_col,
+                 size = 2) + 
+    geom_point(shape = 21,
+               color = bl_col,
+               fill = "white",
+               size = 7,
+               stroke = 1) +
+    geom_text(aes(label = n),
+              family = "Overpass Mono",
+              color = bl_col,
+              fontface = "bold",
+              size = 3.5,
+              hjust = .5,
+              nudge_y = 0) +
+    coord_flip() +
+    scale_y_continuous(expand = c(.02, .02),
+                       breaks = c(0, 5, 10)) +
+    theme_flip +
+    labs(x = NULL,
+         y = "Mentioned combinations of programming\nlanguages in job descriptions")
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_prog_comb.pdf"), 
+         width = 12, height = 7.5, device = cairo_pdf) 
+}
+```
+
 
 
 ## 5.2	Knowledge of Popular Tools
 
 * What tools are most often required?
 
+--> What's the difference to 5.1, including i.e. Power BI? Do you provide a list of common tools?
+
 
 ## 5.3	Years of Experience
 
 * What type of SEO jobs require +5 years experience? 
 
+--> Simply filter by "5+ years"? Or search for years and extract number? How to evaluate if they use different ways to say the same?
+
 
 ## 5.4	Degree Requirements
 
 * What type of degrees are most often required (BS vs MS vs None)? 
+
+--> Did this already for company info - any other rleationship of interest here? Or a simple bar plot showing the three educaiton levels summarized and not for each company size/salary?
 
 
 # 6	Salaries
@@ -1138,6 +1348,7 @@ if(save == T){
 ## 6.1	Salary Ranges
 
 * What are the typcial salary ranges for SEO jobs?
+
 
 
 ## 6.2	Salaries per Location
@@ -1171,3 +1382,4 @@ for(pdf in pdfs) {
               format = "png", dpi = 750)
 }
 ```
+

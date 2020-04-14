@@ -295,7 +295,7 @@ TwinWord
 UberSuggest
 Webtexttool
 Wondersearch
-Wordstream's Free Keyword Tools
+Wordstream
 WordTracker
 Wordtracker Scout
 Advanced Web Ranking
@@ -364,7 +364,6 @@ Muck Rack
 Ninja
 Ontolo
 Pitchbox
-Remove'em
 Rmoov
 ScrapeBox
 tableau

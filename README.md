@@ -220,6 +220,158 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 
 --> What's the difference to 5.1, including i.e. Power BI? Do you provide a list of common tools?
 
+!!! strings to look for (plz apply "all to lower": 
+
+Bing Webmaster Tools
+Botify
+Bright Local
+Browseo
+Clusteric
+ContentKing App
+DareBoost
+DeepCrawl
+EasyRedir
+Forecheck
+Google Analytics
+Google Mobile-Friendly Test
+Google PageSpeed Insights
+Google Search Console
+Google XML Sitemaps
+GTmetrix
+HeadMasterSEO
+LinkPatrol
+Lipperhey
+OnCrawl
+Panguin Tool
+Raven Tools
+Screaming Frog
+Seobility
+Seomator
+SERPmetrics
+Siteliner
+Topvisor
+Varvy SEO Tool
+Whitespark
+Woorank
+Yoast
+Zadroweb
+Answer The Public
+ClearScope
+Exploding Topics
+FAQfox
+Google Keyword Planner
+Google Location 
+Google Trends
+Gookey
+GrepWords
+HitTail
+Imforsmb
+iSpionage
+Jaaxy
+Keyword Eye
+Keyword Revealer
+Keyword Snatcher
+Keyworddit
+KeywordIn
+Keywords Everywhere
+KeywordSpy
+KeywordTool.io
+Kombinator
+kwfinder
+Long Tail Pro
+Power Suggest Pro
+QuestionDB
+SanityCheck
+SECockpit
+Seed Keywords
+SEMrush
+SERPStat
+SimilarWeb
+Soovle
+SpyFu
+StoryBase
+TermExplorer
+TwinWord
+UberSuggest
+Webtexttool
+Wondersearch
+Wordstream's Free Keyword Tools
+WordTracker
+Wordtracker Scout
+Advanced Web Ranking
+Agency Analytics
+AMZ Tracker
+Authority Labs
+GeoRanker
+Microsite Masters
+NightWatch
+Pro Rank Tracker
+Rank Ranger
+Rival IQ
+SE Ranking
+Search Latte
+Serpfox
+SERPs.com
+SERPWoo
+Sistrix
+WebCEO
+WordTail
+Animalz Revive
+BuzzSumo
+Can I Rank
+ClickFlow
+Google SERP Preview Tool
+Keys4Up
+LSIGraph
+MarketMuse
+MetaTags.io
+nTopic
+Positionly
+Ryte
+SEOptimer
+TrendSpottr
+Upcity
+WordLift
+Ahrefs
+cognitiveSEO
+Kerboo
+Majestic 
+Moz
+MozBar
+SEO PowerSuite
+SEOGadget 
+ShareMetric
+URL Profiler
+WebMeUp Backlink Tool
+Morningfame
+Social Blade
+TubeBuddy
+VidIQ
+YTCockpit
+AuthoritySpy
+Buzzstream
+DIBZ
+disavow.it
+Domain Hunter Plus
+GroupHigh
+HARO 
+JustReachOut
+Linkbird
+Linkody
+Linkstant
+MailShake
+Muck Rack
+Ninja
+Ontolo
+Pitchbox
+Remove'em
+Rmoov
+ScrapeBox
+tableau
+qlik
+power bi
+
+
 
 ## 5.3	Years of Experience
 

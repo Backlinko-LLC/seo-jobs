@@ -47,7 +47,7 @@ h3 {
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.showtext = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.showtext = TRUE, dpi = 700)
 
 knitr::knit_hooks$set(inline = function(x) {
   prettyNum(x, big.mark = ",", small.mark = ",", scientific = F)
@@ -191,11 +191,158 @@ colfunc <- colorRampPalette(c(bl_col, "#bce2d5"))
 pos_cols <- colfunc(10)
 ```
 
-```{r data}
-df <- readr::read_csv(here::here("raw_data", "Glassdoor - 2020-04-01-0.csv")) %>% 
+
+# 0. Data
+
+```{r data-glassdoor}
+df_gd <- readr::read_csv(here::here("raw_data", "Glassdoor - 2020-04-01-0.csv")) %>% 
   janitor::clean_names() %>% 
   dplyr::select(-url)
 ```
+
+```{r data-linkedin}
+df_li <- readr::read_csv(here::here("raw_data", "Linkedin.csv")) %>% 
+  janitor::clean_names()
+```
+
+```{r combined-data}
+## prepare GlassDoord data for joining
+df_gd_join <-
+  df_gd %>% 
+  mutate(
+    employment_type = case_when(
+      str_detect(description, "ulltime|ull-time|ull-Time") ~ "Full-time",
+      str_detect(description, "arttime|art-time|art-Time") ~ "Part-time",
+      TRUE ~ NA_character_
+    ),
+    seniority = case_when(
+      str_detect(description, "nternship") ~ "Internship",
+      str_detect(job_title, "intern|Intern") ~ "Internship",
+      str_detect(description, "junior|Junior") ~ "Junior",
+      str_detect(job_title, "junior|Junior") ~ "Junior",
+      str_detect(description, "senior|Senior") ~ "Senior",
+      str_detect(job_title, "senior|Senior") ~ "Senior",
+      str_detect(description, "ntry level|ntry Level") ~ "Entry level",
+      str_detect(job_title, "id-Senior|id-senior|id Senior|id senior") ~ "Mid-Senior level",
+      str_detect(job_title, "irector") ~ "Director",
+      str_detect(job_title, "xecutive") ~ "Executive",
+      TRUE ~ NA_character_
+    )
+  ) %>% 
+  dplyr::select(
+    job_title, 
+    employer, 
+    location,
+    size,
+    description,
+    seniority,
+    employment_type,
+    industry,
+    sector
+  )
+
+###################################################
+## all job offers worldwide for global map
+df_all <- 
+  df_li %>% 
+  dplyr::select(
+    job_title, 
+    employer, 
+    location,
+    size,
+    description,
+    seniority,
+    employment_type,
+    industry,
+    "sector" = job_functions
+  ) %>% 
+  bind_rows(df_gd_join)
+
+###################################################
+## only keep pages with language == EN
+df_li_en <-
+  df_li %>% 
+  ## filter based on 
+  filter(
+    str_detect(url, "^https://www.") | 
+    str_detect(url, "^https://au.") | 
+    #str_detect(url, "^https://be.") | 
+    str_detect(url, "^https://ca.") | 
+    #str_detect(url, "^https://gh.") | 
+    #str_detect(url, "^https://gr.") | 
+    str_detect(url, "^https://ie.") | 
+    #str_detect(url, "^https://il.") | 
+    #str_detect(url, "^https://in.") | 
+    #str_detect(url, "^https://mg.") | 
+    #str_detect(url, "^https://ng.") | 
+    #str_detect(url, "^https://ph.") | 
+    #str_detect(url, "^https://sg.") | 
+    #str_detect(url, "^https://ua.") | 
+    #str_detect(url, "^https://vn.") | 
+    str_detect(url, "^https://za.")
+  ) %>% 
+  mutate(
+    country = str_sub(url, start = 1, end = 11),
+    country = str_remove(country, "https://"),
+    country = str_remove(country, "\\.")
+  )
+
+## join data
+df_en <- 
+  df_li_en %>% 
+  dplyr::select(
+    job_title, 
+    employer, 
+    location,
+    size,
+    description,
+    seniority,
+    employment_type,
+    industry,
+    "sector" = job_functions
+  ) %>% 
+  mutate(
+    sector = case_when(
+      str_detect(sector, "Business") ~ "Business Services",
+      str_detect(sector, "Information Technology") ~ "Information Technology",
+      str_detect(sector, "Consume") ~ "Consumer Services",
+      str_detect(sector, "Health") ~ "Health Care",
+      str_detect(sector, "Educat") ~ "Education",
+      str_detect(sector, "Retail") ~ "Retail",
+      str_detect(sector, "Insurance") ~ "Insurance",
+      str_detect(sector, "Media") ~ "Media",
+      str_detect(sector, "Manufact") ~ "Manufacturing",
+      str_detect(sector, "Account|Legal") ~ "Accounting & Legal",
+      str_detect(sector, "Travel|Tourism") ~ "Travel & Tourism",
+      str_detect(sector, "Biotech|Pharma") ~ "Biotech & Pharmaceuticals",
+      str_detect(sector, "Restaurant|Bar|Food") ~ "Restaurants, Bars & Food Services",
+      str_detect(sector, "Transport|Logistic") ~ "Transportation & Logistics",
+      str_detect(sector, "Construct|Repair|Maintenance") ~ "Construction, Repair & Maintenance",
+      str_detect(sector, "Finance") ~ "Finance",
+      str_detect(sector, "Oil|Gas|Energy|Utilit") ~ "Oil, Gas, Energy & Utilities",
+      str_detect(sector, "ArtsEntertain|Recreat") ~ "Arts, Entertainment & Recreation",
+      str_detect(sector, "Telecom") ~ "Telecommunications",
+      str_detect(sector, "Gov") ~ "Government",
+      TRUE ~ NA_character_
+    )
+  ) %>% 
+  bind_rows(df_gd_join)
+```
+
+We have two original data sets:
+
+* Glassdoor data (original) with 908 observations
+* LinkedIn data (original) with 62,095 observations
+
+The LinkedIn data contain global job offers while the GlassDoor data only jobs from the US. The LinkedIn data contain 27,869 observations from English-speaking countries (USA, Canada, UK, Australia, Ireland, South Africa) and 23,817 from USA and UK (links starting with `www.linkedin.com`).
+
+We merged both data sets and kept as many variables as possible, manually creating new variables for both datasets (GlassDoor: `seniority` and `employment type`; LinkedIn: `sector`) based on text matching of job titles and descriptions. The final worldwide data set contains 63,003 job offers.
+
+Because the job offers are collected from all over the world, a lot of foreign terms are included. Thus, we merged the GlassDoor data also with the English subset of the LinkedIn data and kept again as many variables as possible by manually creating new variables for both data sets. The final "All English" data set contains 28,777 job offers.
+
+The GlassDoor data are cleaner with regard to job titles and description than the LinkedIn data. Consequently, some plots using the GlassDoor data do a better job so we provide for now both version (the merged All English data set and the GlassDoor data set).
+
+Also, the GlassDoor data contain information that are missing from the LinkedIn data such as `estimated salary range`, `rating`, `employer`, `industry`, and `size (no. of employees)`.
 
 
 # 1. Job Title
@@ -204,8 +351,48 @@ df <- readr::read_csv(here::here("raw_data", "Glassdoor - 2020-04-01-0.csv")) %>
 
 We analysed the data on job titles using text mining techniques. In a first step, we tokenize the job titles into single words and visualize their frequency. Stop words and words that appeared less than 7 times were removed to make the graph easier to grasp.
 
-```{r 1-1-popular-job-words, fig.width = 12, fig.height = 9}
-df %>% 
+
+### All English
+
+```{r 1-1-popular-job-words-eng, fig.width = 12, fig.height = 8}
+df_en %>% 
+  unnest_tokens(word, job_title, token = "words") %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = T) %>% 
+  filter(
+    n >= 500,
+    !word %in% c("seo", "yrs", "paid")
+  ) %>% 
+  mutate(word = if_else(word %in% c("sr", "ppc"), 
+                        str_to_upper(word), 
+                        str_to_title(word))) %>% 
+  ggplot(aes(fct_reorder(word, n), n)) +
+    geom_col(fill = bl_col, width = .8) +
+    geom_text(aes(label = n),
+              family = "Overpass Mono",
+              color = "white",
+              fontface = "bold",
+              size = 2.7,
+              hjust = 1,
+              nudge_y = -30) +
+    coord_flip() +
+    scale_x_discrete(expand = c(.025, .025)) +
+    scale_y_continuous(expand = c(.005, .005)) +
+    labs(x = NULL, 
+         y = "Term frequence in job titles",
+         caption = 'Note: Only words with a frequency of 500 or more shown. The terms "SEO", "yrs", and "paid" were removed.') +
+    theme_flip
+
+if(save == T){
+  ggsave(here::here("plots", "1_1_en_jobs_word.pdf"), width = 12, height = 8, device = cairo_pdf)
+}
+```
+
+
+### GlassDoor
+
+```{r 1-1-popular-job-words-gd, fig.width = 12, fig.height = 8}
+df_gd %>% 
   unnest_tokens(word, job_title, token = "words") %>% 
   anti_join(stop_words) %>% 
   count(word, sort = T) %>% 
@@ -226,23 +413,92 @@ df %>%
               hjust = 1,
               nudge_y = -1) +
     coord_flip() +
-    scale_y_continuous(expand = c(.01, .01)) +
+    scale_x_discrete(expand = c(.025, .025)) +
+    scale_y_continuous(expand = c(.005, .005)) +
     labs(x = NULL, 
          y = "Term frequence in job titles",
          caption = 'Note: Only words with a frequency of 8 or more shown. The term "SEO" was removed.') +
     theme_flip
 
 if(save == T){
-  ggsave(here::here("plots", "1_1_jobs_word.pdf"), width = 12, height = 9, device = cairo_pdf)
+  ggsave(here::here("plots", "1_1_gd_jobs_word.pdf"), width = 12, height = 8, device = cairo_pdf)
 }
 ```
 
 
 In a second step, we analysed sequences of words in the job title. The sorted bar plot shows the most popular consecutive sequences of words (5 or more occurences), colored by category.
 
-```{r 1-1-popular-jobs-ngrams-cat, fig.width = 12, fig.height = 7.5}
-df_job_ngrams <-
-  df %>% 
+### All English
+
+
+```{r 1-1-popular-jobs-ngrams-cat-en, fig.width = 12, fig.height = 7.5}
+df_job_ngrams_en <-
+  df_en %>% 
+  unnest_tokens(word, job_title, token = "ngrams") %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = T) %>% 
+  filter(
+    n >= 100,
+    !is.na(word)
+  ) %>% 
+  mutate(
+    group = case_when(
+      str_detect(word, "content") ~ "Content",
+      str_detect(word, "manager") ~ "Management",
+      str_detect(word, "analyst") ~ "Analysis",
+      str_detect(word, "strategist") ~ "Strategy",
+      str_detect(word, "optimiz") ~ "Optimization",
+      str_detect(word, "market") ~ "Marketing",
+      str_detect(word, "market") ~ "Marketing",
+      str_detect(word, "specialist") ~ "Analysis",
+      str_detect(word, "developer") ~ "Development",
+      str_detect(word, "front end") ~ "Development",
+      str_detect(word, "relocate") ~ "Relocation",
+      str_detect(word, "relocate") ~ "Relocation",
+      str_detect(word, "internship") ~ "Internship",
+      TRUE ~ "Other"
+    ),
+    word = str_to_title(word),
+    word = factor(word)
+  ) %>% 
+  mutate(group = fct_relevel(group, "Other", after = Inf))
+  
+ggplot(df_job_ngrams_en, 
+       aes(fct_reorder(word, n), n)) +
+    geom_col(aes(fill = group), 
+             width = .8) +
+    geom_text(aes(label = n),
+              family = "Overpass Mono",
+              color = "white",
+              fontface = "bold",
+              size = 3,
+              hjust = 1,
+              nudge_y = -5) +
+    coord_flip() +
+    scale_y_continuous(expand = c(.01, .01)) +
+    scale_fill_manual(name = "Job Category",
+                      values = c("#633b96", "#2889a0", "#1d781d", "#e49e2e", 
+                                 "#b8318c", "#00b877", "#8d1e14", "grey50")) +
+    guides(fill = guide_legend(ncol = 1)) +
+    labs(x = NULL, 
+         y = "Frequence of word sequence in job titles",
+         caption = "Note: Only sequences with a frequency of 5 or more shown.") +
+    theme_flip +
+    theme(legend.position = c(.63, .558),
+          legend.key.size = unit(3, "pt"),
+          legend.key.width = unit(30, "pt"))
+
+if(save == T){
+  ggsave(here::here("plots", "1_1_en_jobs_cat.pdf"), width = 12, height = 7.5, device = cairo_pdf)
+}
+```
+
+
+### GlassDoor
+
+```{r 1-1-popular-jobs-ngrams-cat-gd, fig.width = 12, fig.height = 7.5}
+df_job_ngrams_gd <-
+  df_gd %>% 
   unnest_tokens(word, job_title, token = "ngrams") %>% 
   anti_join(stop_words) %>% 
   count(word, sort = T) %>% 
@@ -264,7 +520,7 @@ df_job_ngrams <-
     word = str_to_title(word)
   ) 
   
-ggplot(df_job_ngrams, 
+ggplot(df_job_ngrams_gd, 
        aes(fct_reorder(word, n), n)) +
     geom_col(aes(fill = group), 
              width = .8) +
@@ -272,7 +528,7 @@ ggplot(df_job_ngrams,
               family = "Overpass Mono",
               color = "white",
               fontface = "bold",
-              size = 2.7,
+              size = 3,
               hjust = 1,
               nudge_y = -.7) +
     coord_flip() +
@@ -284,24 +540,137 @@ ggplot(df_job_ngrams,
          y = "Frequence of word sequence in job titles",
          caption = "Note: Only sequences with a frequency of 5 or more shown.") +
     theme_flip +
-    theme(legend.position = c(.68, .627),
+    theme(legend.position = c(.42, .604),
           legend.key.size = unit(3, "pt"),
           legend.key.width = unit(30, "pt"))
 
 if(save == T){
-  ggsave(here::here("plots", "1_1_jobs_cat.pdf"), width = 12, height = 7.5, device = cairo_pdf)
+  ggsave(here::here("plots", "1_1_gd_jobs_cat.pdf"), width = 12, height = 7.5, device = cairo_pdf)
 }
 ```
 
 
 We manually classified in technical and non-technical positions, removing all words that are no specific to any of the both categories. This modified stacked bar plot shows the number of words found per job category and, additionally as another stacked bar next to it, the most common words per category (with labels for words that occured at least 20 times). The height of the stacks indicates as well the number, the width is arbitrary.
 
-```{r 1-1-popular-job-type, fig.width = 12, fig.height = 12}
+
+#### All English
+
+
+```{r 1-1-popular-job-type-en--no-specialist, fig.width = 12, fig.height = 10.5}
+## technical: analyst, engineer, developer, technician, optimization,
+## non-technical: manager, director, writer, consultant, coordinator, editor, marketing, sales, social media 
+
+df_polar <-
+  df_en %>% 
+  unnest_tokens(word, job_title, token = "words") %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = T) %>% 
+  mutate(
+    type = case_when(
+      str_detect(word, "analy|develop|technic|data") ~ "technical",
+      str_detect(word, "manage|direct|writ|consult|coordinat|edito|market|sale|social|strateg|supervis") ~ "non-technical",
+      TRUE ~ "unknown"
+    )
+  ) %>%
+  filter(type != "unknown") %>% 
+  group_by(type) %>% 
+  mutate(sum = sum(n)) %>% 
+  ungroup %>% 
+  arrange(-sum, n) %>% 
+  mutate(
+    pos = cumsum(n),
+    pos = if_else(!is.na(lag(pos)), pos - ((pos - lag(pos)) / 2), pos / 2)
+  ) %>% 
+  mutate(type = fct_reorder(factor(type), sum)) %>% 
+  mutate(country = fct_reorder2(factor(word), as.numeric(type), n, .desc = F)) %>% 
+  group_by(type) %>%
+  arrange(n) %>% 
+  mutate(
+    alpha = n / max(n),
+    pos_cont = min(pos) + (max(pos) - min(pos)) / 2
+  ) 
+
+df_polar %>% 
+  ggplot(aes(1, n)) +
+    geom_col(
+      aes(
+        fill = type,
+        fill = after_scale(colorspace::darken(fill, .05)), 
+        color = type,
+        color = after_scale(colorspace::darken(color, .15)), 
+        alpha = alpha
+      ), 
+      size = .1
+    ) +
+    geom_col(
+      aes(fill = type,
+          color = type,
+          fill = after_scale(colorspace::darken(fill, .3)),
+          color = after_scale(colorspace::darken(color, .3))),
+      width = .4,
+      size = .1
+    ) +
+    geom_rect(
+      xmin = -Inf, xmax = .8,
+      ymin = -Inf, ymax = Inf,
+      fill = "white"
+    ) +
+    geom_text(data = df_polar %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont)),
+              aes(1, pos_cont + 750, 
+                  label = glue::glue("{type}\ntitle terms")),
+              family = "Montserrat",
+              fontface = "bold",
+              color = "white",
+              size = 8,
+              lineheight = .9,
+              hjust = .5,
+              vjust = 0) +
+    geom_text(data = df_polar %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont), sum = format(unique(sum), big.mark = ",")),
+              aes(1, pos_cont, 
+                  label = sum),
+              family = "Overpass Mono",
+              color = "white",
+              size = 10,
+              lineheight = .9,
+              hjust = .5,
+              vjust = .5) +
+    geom_text(data = df_polar %>% filter(n >= 250),
+              aes(1.47, pos, 
+                  label = word, 
+                  color = type,
+                  color = after_scale(colorspace::darken(color, .15)),
+                  hjust = 0,
+                  size = n),
+              family = "Montserrat", 
+              fontface = "bold") +
+    geom_text(data = df_polar %>% filter(n >= 250),
+              aes(1.33, pos, 
+                  label = n, 
+                  hjust = .5,
+                  size = n / 2),
+              family = "Overpass Mono", 
+              color = "white") +
+    scale_x_continuous(limits = c(0.5, 2.15)) +
+    scale_color_manual(values = c(bl_col, "#8800d1"), guide = F) +
+    scale_fill_manual(values = c(bl_col, "#8800d1"), guide = F) + 
+    scale_alpha(range = c(.3, 1), guide = F) +
+    scale_size(range = c(2, 15), guide = F) +
+    theme_void()
+
+if(save == T){
+  ggsave(here::here("plots", "1_1_en_jobs_tech_adj.pdf"), width = 12, height = 13.5, device = cairo_pdf)
+}
+```
+
+
+#### GlassDoor
+
+```{r 1-1-popular-job-type-gd, fig.width = 12, fig.height = 12}
 ## technical: analyst, specialist, engineer, developer, technician, optimization,
 ## non-technical: manager, director, writer, consultant, coordinator, editor, marketing, sales, social media 
 
 df_polar <-
-  df %>% 
+  df_gd %>% 
   unnest_tokens(word, job_title, token = "words") %>% 
   anti_join(stop_words) %>% 
   count(word, sort = T) %>% 
@@ -398,16 +767,16 @@ df_polar %>%
     theme_void()
 
 if(save == T){
-  ggsave(here::here("plots", "1_1_jobs_tech.pdf"), width = 12, height = 12, device = cairo_pdf)
+  ggsave(here::here("plots", "1_1_gd_jobs_tech.pdf"), width = 12, height = 12, device = cairo_pdf)
 }
 ```
 
-```{r 1-1-popular-job-type-no-specialist, fig.width = 12, fig.height = 10.5}
+```{r 1-1-popular-job-type-gd--no-specialist, fig.width = 12, fig.height = 10.5}
 ## technical: analyst, engineer, developer, technician, optimization,
 ## non-technical: manager, director, writer, consultant, coordinator, editor, marketing, sales, social media 
 
 df_polar <-
-  df %>% 
+  df_gd %>% 
   unnest_tokens(word, job_title, token = "words") %>% 
   anti_join(stop_words) %>% 
   count(word, sort = T) %>% 
@@ -505,7 +874,7 @@ df_polar %>%
 
 
 if(save == T){
-  ggsave(here::here("plots", "1_1_jobs_tech_adj.pdf"), width = 12, height = 14.5, device = cairo_pdf)
+  ggsave(here::here("plots", "1_1_gd_jobs_tech_adj.pdf"), width = 12, height = 14.5, device = cairo_pdf)
 }
 ```
 
@@ -516,50 +885,227 @@ if(save == T){
 
 * Where do companies hire SEOs? (beautiful US Map)
 
-```{r map-prep}
+```{r map-gd-prep}
 ## usa map
 states <- 
   st_as_sf(map("state", plot = F, fill = T)) %>% 
   st_transform(2163)
 
-df_loc <-
-  df %>% 
+df_loc_gd <-
+  df_gd %>% 
   group_by(location) %>% 
   count(sort = T) %>% 
   ungroup()
 ```
 
+```{r map-all+en-prep}
+## world map
+world <- 
+  st_as_sf(rworldmap::getMap(resolution = "high")) %>% 
+  st_transform(crs = "+proj=cea +lon_0=0 +lat_ts=30 +x_0=0 +y_0=0 +datum=WGS84 +ellps=WGS84 +units=m +no_defs") %>% 
+  dplyr::select(ISO_A3, continent)
+
+df_loc_all <-
+  df_all %>% 
+  group_by(location) %>% 
+  count(sort = T) %>% 
+  ungroup()
+
+df_loc_en <-
+  df_en %>% 
+  group_by(location) %>% 
+  count(sort = T) %>% 
+  ungroup()
+```
+
+
 ## 2.1 Hot Spots (Cities)
 
-```{r 2-1-map-cities, fig.width = 15, fig.height = 9.7}
+#### Global
+
+```{r 2-1-map-cities-en, fig.width = 15, fig.height = 9.7}
 ## add geocodes of cities
-path <- here::here("proc_data", "geocodes.Rds")
+path <- here::here("proc_data", "geocodes_all.Rds")
 
 if(file.exists(path)){
   ## load geocodes or...
-  df_geo <- readRDS(path)
+  df_geo_all <- readRDS(path)
 }else{
   ## grab and save geocodes
-  df_geo <- 
-    gio_batch_geocode(df_loc$location) %>% 
+  df_geo_all <- 
+    gio_batch_geocode(df_loc_all$location) %>% 
     unnest(response_results, .preserve = response_warnings) %>% 
     dplyr::select(query, formatted_address, location.lat, location.lng) %>% 
     group_by(query) %>% 
     slice(1)
   
-  saveRDS(df_geo, path)
+  saveRDS(df_geo_all, path)
 }
 
-sf_map <-
-  df_loc %>% 
-  left_join(df_geo, by = c("location" = "query")) %>% 
+sf_map_all <-
+  df_loc_all %>% 
+  left_join(df_geo_all, by = c("location" = "query")) %>% 
+  filter(!is.na(location.lng)) %>% 
+  st_as_sf(coords = c("location.lng", "location.lat"), 
+           crs = 4326) %>% 
+  st_transform(st_crs(world)) 
+  
+sf_map_all %>% 
+  arrange(-n) %>% 
+  ggplot() +
+    geom_sf(data = world, 
+            #color = colorspace::darken(bl_col, .05), 
+            color = "grey60",
+            alpha = .3,
+            lwd = 5) +
+    geom_sf(data = world, 
+            color = "white", 
+            fill = "#cedbd7",
+            lwd = .5) +
+    geom_sf(aes(size = n),
+            color = "white",
+            show.legend = "point") +
+    geom_sf(aes(size = n), 
+            shape = 21, 
+            color = colorspace::darken(bl_col, .2),
+            fill = NA,
+            stroke = .4,
+            show.legend = "point") +
+    geom_sf(aes(size = n, color = n), 
+            color = bl_col,
+            alpha = .1,
+            show.legend = "point") +
+    scale_size(range = c(3, 30), 
+               breaks = c(1, 10, 25, 50, 100),
+               name = "Number of job offers") +
+    guides(size = guide_legend(title.position = "top", 
+                                title.hjust = .5, 
+                                nrow = 1,
+                                label.position = "bottom",
+                                override.aes = list(shape = 21, color = bl_col, fill = colorspace::lighten(bl_col, .9), stroke = 1))) +
+    theme_map +
+    theme(legend.position = c(.2, .1),
+          legend.title = element_text(margin = margin(0, 0, -5, 0)),
+          legend.text = element_text(margin = margin(-10, 0, 0, 0)))
+
+if(save == T){ 
+  ggsave(here::here("plots", "2_1_all_map_cities.pdf"), 
+         width = 15, height = 9.7, device = cairo_pdf) 
+}
+```
+
+
+#### North America
+
+```{r 2-1-map-cities-en, fig.width = 15, fig.height = 9.7}
+## add geocodes of cities
+path <- here::here("proc_data", "geocodes_en.Rds")
+
+if(file.exists(path)){
+  ## load geocodes or...
+  df_geo_en <- readRDS(path)
+}else{
+  ## grab and save geocodes
+  df_geo_en <- 
+    gio_batch_geocode(df_loc_en$location) %>% 
+    unnest(response_results, .preserve = response_warnings) %>% 
+    dplyr::select(query, formatted_address, location.lat, location.lng) %>% 
+    group_by(query) %>% 
+    slice(1)
+  
+  saveRDS(df_geo_en, path)
+}
+
+sf_map_en <-
+  df_loc_en %>% 
+  left_join(df_geo_en, by = c("location" = "query")) %>% 
+  filter(!is.na(location.lng)) %>% 
+  st_as_sf(coords = c("location.lng", "location.lat"), 
+           crs = 4326) %>% 
+  st_transform(st_crs(states))
+  
+sf_map_en %>% 
+  arrange(-n) %>% 
+  ggplot() +
+    # geom_sf(data = world, 
+    #         #color = colorspace::darken(bl_col, .05), 
+    #         color = "grey60",
+    #         alpha = .2,
+    #         lwd = 3) +
+    geom_sf(data = world, 
+            color = "grey60", #"white", 
+            fill = "#374b45",#cedbd7",
+            lwd = .4) +
+    geom_sf(aes(size = n),
+            color = "white",
+            show.legend = "point") +
+    geom_sf(aes(size = n),
+            shape = 21,
+            color = colorspace::darken(bl_col, .2),
+            fill = NA,
+            stroke = .1,
+            show.legend = "point") +
+    geom_sf(aes(size = n, color = n),
+            color = bl_col,
+            alpha = .1,
+            show.legend = "point") +
+    coord_sf(xlim = c(-4150000, 4050000), 
+             ylim = c(-2200000, 3650000)) +
+    scale_size(range = c(1, 25), 
+               breaks = c(10, 50, 100, 250, 500, 1000),
+               name = "Number of job offers") +
+    guides(size = guide_legend(title.position = "top", 
+                                title.hjust = .5, 
+                                nrow = 1,
+                                label.position = "bottom",
+                                override.aes = list(shape = 21, color = bl_col, fill = colorspace::lighten(bl_col, .9), stroke = 1))) +
+    theme_map +
+    theme(legend.position = c(.19, .12),
+          legend.title = element_text(color = "grey80", margin = margin(0, 0, -5, 0)),
+          legend.text = element_text(color = "grey60", margin = margin(-5, 0, 0, 0)),
+          panel.background = element_rect(fill = "grey30"),
+          panel.border = element_rect(color = "grey60", fill = "transparent", size = 3.5),
+          panel.grid.major = element_line(color = "grey45", size = .4, linetype = "dashed"),
+          plot.margin = margin(0, 0, 0, 0))
+
+if(save == T){ 
+  ggsave(here::here("plots", "2_1_en_map_cities.pdf"), 
+         width = 15, height = 10.7, device = cairo_pdf) 
+}
+```
+
+
+#### US (GlassDoor only)
+
+```{r 2-1-map-cities-gd, fig.width = 15, fig.height = 9.7}
+## add geocodes of cities
+path <- here::here("proc_data", "geocodes_gd.Rds")
+
+if(file.exists(path)){
+  ## load geocodes or...
+  df_geo_gd <- readRDS(path)
+}else{
+  ## grab and save geocodes
+  df_geo_gd <- 
+    gio_batch_geocode(df_loc_gd$location) %>% 
+    unnest(response_results, .preserve = response_warnings) %>% 
+    dplyr::select(query, formatted_address, location.lat, location.lng) %>% 
+    group_by(query) %>% 
+    slice(1)
+  
+  saveRDS(df_geo_gd, path)
+}
+
+sf_map_gd <-
+  df_loc_gd %>% 
+  left_join(df_geo_gd, by = c("location" = "query")) %>% 
   filter(!is.na(location.lng)) %>% 
   st_as_sf(coords = c("location.lng", "location.lat"), 
            crs = 4326) %>% 
   st_transform(st_crs(states)) %>% 
   st_crop(st_bbox(states))
   
-sf_map %>% 
+sf_map_gd %>% 
   arrange(-n) %>% 
   ggplot() +
     geom_sf(data = states, 
@@ -598,7 +1144,7 @@ sf_map %>%
           legend.text = element_text(margin = margin(-10, 0, 0, 0)))
 
 if(save == T){ 
-  ggsave(here::here("plots", "2_1_map_cities.pdf"), 
+  ggsave(here::here("plots", "2_1_gd_map_cities.pdf"), 
          width = 15, height = 9.7, device = cairo_pdf) 
 }
 ```
@@ -707,7 +1253,7 @@ if(save == T){
 
 ```{r data-prep-size}
 df_size <- 
-  df %>% 
+  df_gd %>% 
   dplyr::select(size, description) %>% 
   mutate(
     size = if_else(is.na(size), "Unknown", size),
@@ -809,7 +1355,7 @@ Doctorate: 1
 
 ```{r data-prep-revenue}
 df_revenue <-
-  df %>% 
+  df_gd %>% 
   dplyr::select(revenue, description) %>% 
   mutate(
     revenue = if_else(revenue == "Unknown / Non-Applicable", "Unknown", revenue),
@@ -997,7 +1543,7 @@ if(save == T){
 * What type of companies hire SEOs? 
 
 ```{r 3-3-sector}
-df %>% 
+df_gd %>% 
   filter(!is.na(sector)) %>% 
   group_by(sector) %>% 
   count(sort = T) %>% 
@@ -1026,7 +1572,7 @@ if(save == T){
 ```
 
 ```{r 3-3-industry}
-df %>% 
+df_gd %>% 
   filter(!is.na(industry)) %>% 
   group_by(industry) %>% 
   count(sort = T) %>% 
@@ -1062,7 +1608,7 @@ if(save == T){
 * Do lower rated companies pay less (salary)? Which companies have the highest ratings? 
 
 ```{r 3-4-rating-salary}
-df %>% 
+df_gd %>% 
   dplyr::select(salary, ratings) %>% 
   filter(
     !is.na(salary),
@@ -1103,7 +1649,7 @@ if(save == T){
 
 ```{r data-prep-tasks}
 df_tasks_words <-
-  df %>% 
+  df_gd %>% 
   unnest_tokens(word, description, token = "words") %>% 
   anti_join(stop_words) %>% 
   count(word, sort = T)
@@ -1129,7 +1675,7 @@ if(save == T){
 }
 
 df_tasks_sequ <- 
-  df %>% 
+  df_gd %>% 
   unnest_tokens(word, description, token = "ngrams") %>% 
   anti_join(stop_words) %>% 
   count(sequ, sort = T) 
@@ -1180,7 +1726,7 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 
 ```{r data-programming-languages}
 df_prog <-
-  df %>% 
+  df_gd %>% 
   mutate(
     JavaScript = str_count(description, " JavaScript "),
     HTML = str_count(description, " HTML "),
@@ -1364,7 +1910,6 @@ if(save == T){
 ## 6.4	Salaries per job requirements
 
 * Do positions with programming languages pay significantly more?
-
 
 
 

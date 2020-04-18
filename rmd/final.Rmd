@@ -96,19 +96,64 @@ In section 5.1 U have used the programming languages listed in the yearly survey
 
 I assume for tools (section 5.2) you mean non-programming tools to be included (as well or only those?). Can you come up with a list here? I might run out of tools used in this context very soon (I would include tools such as Power BI and Tableau?!).
 
+
+
+# 0. Data
+
+We have two original data sets:
+
+* Glassdoor data (original) with 908 observations
+* LinkedIn data (original) with 62,095 observations
+
+The LinkedIn data contain global job offers while the GlassDoor data only jobs from the US. The LinkedIn data contain 27,869 observations from English-speaking countries (USA, Canada, UK, Australia, Ireland, South Africa) and 23,817 from USA and UK (links starting with `www.linkedin.com`).
+
+We merged both data sets and kept as many variables as possible, manually creating new variables for both datasets (GlassDoor: `seniority` and `employment type`; LinkedIn: `sector`) based on text matching of job titles and descriptions. The final worldwide data set contains 63,003 job offers.
+
+Because the job offers are collected from all over the world, a lot of foreign terms are included. Thus, we merged the GlassDoor data also with the English subset of the LinkedIn data and kept again as many variables as possible by manually creating new variables for both data sets. The final "All English" data set contains 28,777 job offers.
+
+The GlassDoor data are cleaner with regard to job titles and description than the LinkedIn data. Consequently, some plots using the GlassDoor data do a better job so we provide for now both version (the merged All English data set and the GlassDoor data set).
+
+Also, the GlassDoor data contain information that are missing from the LinkedIn data such as `estimated salary range`, `rating`, `employer`, `industry`, and `size (no. of employees)`.
+
+
+
 # 1. Job Title
 
 ## 1.1 Most Popular SEO Jobs
 
+### Which words are the most popular in the job title?
+
 We analyzed the data on job titles using text mining techniques. In a first step, we tokenize the job titles into single words and visualize their frequency. Stop words and words that appeared less than 7 times were removed to make the graph easier to grasp.
 
-![](../plots/png/1_1_jobs_word_1.png)
 
+#### All English:
+
+![](../plots/png/1_1_en_jobs_word_1.png)
+
+
+#### GlassDoor:
+
+![](../plots/png/1_1_gd_jobs_word_1.png)
+
+
+### Which consecutive term sequences are the most popular in the job title?
 
 In a second step, we analyzed sequences of words in the job title. The sorted bar plot shows the most popular consecutive sequences of words (5 or more occurrences), colored by category.
 
-![](../plots/png/1_1_jobs_cat_1.png)
 
+#### All English:
+
+![](../plots/png/1_1_en_jobs_cat_1.png)
+
+
+#### GlassDoor:
+
+Less categories thus a bit easier to read.
+
+![](../plots/png/1_1_gd_jobs_cat_1.png)
+
+
+### Are technical terms in job titles more popular? Which technical and non-technical terms are most popular?
 
 We  manually classified in technical and non-technical positions, removing all words that are no specific to any of the both categories:
 
@@ -117,37 +162,55 @@ We  manually classified in technical and non-technical positions, removing all w
 
 The modified stacked bar plot shows the number of words found per job category and, additionally as another stacked bar next to it, the most common words per category (with labels for words that occured at least 20 times). The height of the stacks indicates as well the number, the width is arbitrary.
 
-![](../plots/png/1_1_jobs_tech_1.png)
 
-(Not sure if specialist is technical only. I looked it up and it sounds as "SEO specialist" is a very technical position in general.)
+#### All English:
 
-![](../plots/png/1_1_jobs_tech_adj_1.png)
+![](../plots/png/1_1_en_jobs_tech_adj_1.png)
+
+
+#### GlassDoor:
+
+![](../plots/png/1_1_gd_jobs_tech_adj_1.png)
 
 
 # 2. Location
 
-#### Where do companies hire SEOs?
+## 2.1 Hot Spots Worldwide
 
-## 2.1 Hot Spots (Cities)
+Still missing geocodes, not able to scrape them currently (limit reached?)
+
+
+## 2.2 Hot Spots North America
+
+The "All English" dataset projected on the North American continent:
+
+![](../plots/png/2_1_en_map_cities_1.png)
+
+(Light version: It was hard to see the dots so I turned it into a dark version. Work in progress, not happy yet.)
+
+
+## 2.3 Hot Spots US Cities
 
 A bubble map showing company locations by city (excluding "states", "worldwide" and "remote").
 
-![](../plots/png/2_1_map_cities_1.png)
+![](../plots/png/2_1_gd_map_cities_1.png)
 
 Version with the Backlinko cyan as outline:
 
-![](../plots/png/2_1_map_cities_bl_1.png)
+![](../plots/png/2_1_gd_map_cities_bl_1.png)
 
 
-## 2.2 Hot Spots (States)
+## 2.4 Hot Spots US States
 
 A chloropleth hexagonal map showing company locations by state (excluding "states", "worldwide" and "remote"). Hexagonal tile maps are useful to remove the effect of area (i.e. our variable "job offers" is not realted to a state's area).
 
-![](../plots/png/2_2_map_hex_states_1.png)
+**STILL HAVE TO FIX NUMBERS!**
+
+![](../plots/png/2_2_gd_map_hex_states_1.png)
 
 Version with the Backlinko cyan as outline:
 
-![](../plots/png/2_2_map_hex_states_bl_1.png)
+![](../plots/png/2_2_gd_map_hex_states_bl_1.png)
 
 
 # 3. Company Info

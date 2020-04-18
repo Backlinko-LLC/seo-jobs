@@ -890,12 +890,20 @@ sf_states_count %>%
                                     na.value = "grey96",
                                     breaks = c(1, seq(25, 200, by = 25)),
                                     name = "Number of job offers") +
-    geom_sf_text(data = centroids %>% filter(name != "Maryland"), 
+    geom_sf_text(data = sf_states_count %>% filter(name != "Maryland", pt_count < 100), 
                  aes(label = pt_count),
-                 family = "Overpass") +
-    geom_sf_text(data = centroids %>% filter(name == "Maryland") %>% st_as_sf(coords = c(1977983, -380000), crs = 4326), 
+                 family = "Overpass",
+                 fontface = "bold") +
+    geom_sf_text(data = sf_states_count %>% filter(name != "Maryland", pt_count >= 100), 
                  aes(label = pt_count),
-                 family = "Overpass") +
+                 family = "Overpass",
+                 fontface = "bold",
+                 color = "white") +
+    geom_sf_text(data = sf_states_count %>% filter(name == "Maryland"), 
+                 aes(label = pt_count),
+                 family = "Overpass",
+                 fontface = "bold",
+                 nudge_y = 35000) +
     guides(fill = guide_colorbar(title.position = "top",
                                  title.hjust = .5,
                                  label.position = "bottom",

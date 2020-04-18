@@ -6,57 +6,54 @@ by Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)
 
 **Section with comments and questions on the analysis and workflow - let's mostly discuss here**
 
-### Job Position Types
 
-We need to agree on names of positions in general and which fall into technical/non-technical groups.
 
-I did some text mining and defined for now technical and non-technical positions manually looking at the resulting list without stop words. I decided to clasify as follows:
 
-* technical ~  `analy|special|engine|develop|technic|optimi`
-* non-technical ~  `manage|direct|writ|consult|coordinat|edito|market|sale|social|strateg|supervis`
+# 0. Data
 
-!!!This is already a very good selection. I would remove engin and optimi as they are part of "Search Engine Optimization". They can be part of both worlds, for example an "Search Engine Optimization Content Writer". Note: May change in the future. Therefore, for now there is now need to report on key takeaways.
+We use two data sets:
 
-I am not sure if all of them are correct (but hopefully most) but e.g. "specialist" is a term I would have another look at. I searched descriptions of specialists and they read as if SEO specialist is a common term for a technical position. Correct?
+* Glassdoor data (original) with 908 observations
+* LinkedIn data (original) with 62,095 observations
+  - subset for "SEO": with 2,387 observations
+  - subset for "SEO" and English-speaking offers: with 603 observations
 
---> Okay, I have included an adjusted version, keeping the first as well so Brian can decide (or we can go back to it later or simply remove it if it's bs anyway).
+The LinkedIn data contain global job offers while the GlassDoor data only jobs from the US. The LinkedIn data including only job offers with the term `SEO` (or `seo`) contain 2,387 (27,869 for all job offers) observations from English-speaking countries (USA, Canada, UK, Australia, Ireland, South Africa) and 552 (23,81727,869 for all job offers) from the USA and the UK (links starting with `www.linkedin.com`).
 
-## Priorities
-!!! I put the more advanced research questions in parentheses. Let´s focus on the basic questions for now. I want to get the basics right. In our last project, we (you) put a lot of effort into the large vs other domains and at the end he did not use them.
+We merged both data sets and kept as many variables as possible, manually creating new variables for both datasets (GlassDoor: `seniority` and `employment type`; LinkedIn: `sector`) based on text matching of job titles and descriptions. The final worldwide data set contains 3,295 observations (63,003 for all job offers).
 
---> Argh, in my versio nthis was not included yet so I did all plots with regard to company info beside specialized tasks which is a bit difficult anyway (more detailed comments below for each section). Going to ingore questions in parentheses from now on.
+Because the job offers are collected from all over the world, a lot of foreign terms are included. Thus, we merged the GlassDoor data also with the English subset of the LinkedIn data and kept again as many variables as possible by manually creating new variables for both data sets. The final "All English" data set contains 1,511 observations (28,777 for all job offers).
 
-## Salary + education
+The GlassDoor data are cleaner with regard to job titles and description than the LinkedIn data. Consequently, some plots using the GlassDoor data do a better job so we provide for now both version (the merged All English data set and the GlassDoor data set).
 
-I have the feeling there is some overlap between section 5.3 and 6 with section 1 where we already look into salary and education. So I would suggest to somehow merge them or reorder them. Assuming you have a simple bar chart or sth similar for simply the three degrees and a histogram of salaries in mind, those shown in section one are way more detailed by looing at the company's size and rating.
+Also, the GlassDoor data contain information that are missing from the LinkedIn data such as `estimated salary range`, `rating`, `employer`, `industry`, and `size (no. of employees)`.
 
-## Job Tasks
 
-I've added word clouds for both words and consecutive sequences of terms found in the job description (removed "seo" and terms which occurred less than 10 times). Do you provide any list out of these? If you want to have a look at the list, I have first generated the data frame and then plotted it so we can also have a look into the list and filter it manually etc.
 
-## "Deep Dive" into Tasks
-
-I am not sure what exactly you have in mind here. Since I already decided to show the subset of technical versus non-technical jobs this feels a bit repetitive. But I might be wrong - here we look into the description,  in section 1 I used the job title. Let's see once we have the list of tasks.
-
-## Programming Languages + Tools
-
-In section 5.1 U have used the programming languages listed in the yearly survey of StackOverflow and added Julia (because I know it and wondered why it's missing - not included anyway).
-
-I assume for tools (section 5.2) you mean non-programming tools to be included (as well or only those?). Can you come up with a list here? I might run out of tools used in this context very soon (I would include tools such as Power BI and Tableau?!).
 
 # 1. Job Title
 
 ## 1.1 Most Popular SEO Jobs
 
+### Which words are the most popular in the job title?
+
 We analyzed the data on job titles using text mining techniques. In a first step, we tokenize the job titles into single words and visualize their frequency. Stop words and words that appeared less than 7 times were removed to make the graph easier to grasp.
+
 
 ![](./plots/png/1_1_jobs_word_1.png)
 
 
+
+### Which consecutive term sequences are the most popular in the job title?
+
 In a second step, we analyzed sequences of words in the job title. The sorted bar plot shows the most popular consecutive sequences of words (5 or more occurrences), colored by category.
+
 
 ![](./plots/png/1_1_jobs_cat_1.png)
 
+
+
+### Are technical terms in job titles more popular? Which technical and non-technical terms are most popular?
 
 We  manually classified in technical and non-technical positions, removing all words that are no specific to any of the both categories:
 
@@ -65,37 +62,34 @@ We  manually classified in technical and non-technical positions, removing all w
 
 The modified stacked bar plot shows the number of words found per job category and, additionally as another stacked bar next to it, the most common words per category (with labels for words that occured at least 20 times). The height of the stacks indicates as well the number, the width is arbitrary.
 
-![](./plots/png/1_1_jobs_tech_1.png)
-
-(Not sure if specialist is technical only. I looked it up and it sounds as "SEO specialist" is a very technical position in general.)
-
 ![](./plots/png/1_1_jobs_tech_adj_1.png)
+
 
 
 # 2. Location
 
-#### Where do companies hire SEOs?
+## 2.1 Hot Spots: Cities (Bubble Map)
 
-## 2.1 Hot Spots (Cities)
+![](./plots/png/2_1_map_northamerica_cities_1.png)
 
-A bubble map showing company locations by city (excluding "states", "worldwide" and "remote").
-
-![](./plots/png/2_1_map_cities_1.png)
-
-Version with the Backlinko cyan as outline:
-
-![](./plots/png/2_1_map_cities_bl_1.png)
+![](./plots/png/2_1_map_states_cities_1.png)
 
 
-## 2.2 Hot Spots (States)
+## 2.2 Hot Spots by States
 
-A chloropleth hexagonal map showing company locations by state (excluding "states", "worldwide" and "remote"). Hexagonal tile maps are useful to remove the effect of area (i.e. our variable "job offers" is not realted to a state's area).
+### Chloropleth Map
 
-![](./plots/png/2_2_map_hex_states_1.png)
+![](./plots/png/2_2_map_states_chloro_1.png)
 
-Version with the Backlinko cyan as outline:
+### Hexagonal Tile Map
 
-![](./plots/png/2_2_map_hex_states_bl_1.png)
+![](./plots/png/2_2_map_states_hex_1.png)
+
+
+## 2.3 Hot Spots by US Counties
+
+![](./plots/png/2_3_map_counties_chloro_1.png)
+
 
 
 # 3. Company Info
@@ -219,157 +213,6 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 #### What tools are most often required?
 
 --> What's the difference to 5.1, including i.e. Power BI? Do you provide a list of common tools?
-
-!!! strings to look for (plz apply "all to lower": 
-
-Bing Webmaster Tools
-Botify
-Bright Local
-Browseo
-Clusteric
-ContentKing App
-DareBoost
-DeepCrawl
-EasyRedir
-Forecheck
-Google Analytics
-Google Mobile-Friendly Test
-Google PageSpeed Insights
-Google Search Console
-Google XML Sitemaps
-GTmetrix
-HeadMasterSEO
-LinkPatrol
-Lipperhey
-OnCrawl
-Panguin Tool
-Raven Tools
-Screaming Frog
-Seobility
-Seomator
-SERPmetrics
-Siteliner
-Topvisor
-Varvy SEO Tool
-Whitespark
-Woorank
-Yoast
-Zadroweb
-Answer The Public
-ClearScope
-Exploding Topics
-FAQfox
-Google Keyword Planner
-Google Location 
-Google Trends
-Gookey
-GrepWords
-HitTail
-Imforsmb
-iSpionage
-Jaaxy
-Keyword Eye
-Keyword Revealer
-Keyword Snatcher
-Keyworddit
-KeywordIn
-Keywords Everywhere
-KeywordSpy
-KeywordTool.io
-Kombinator
-kwfinder
-Long Tail Pro
-Power Suggest Pro
-QuestionDB
-SanityCheck
-SECockpit
-Seed Keywords
-SEMrush
-SERPStat
-SimilarWeb
-Soovle
-SpyFu
-StoryBase
-TermExplorer
-TwinWord
-UberSuggest
-Webtexttool
-Wondersearch
-Wordstream
-WordTracker
-Wordtracker Scout
-Advanced Web Ranking
-Agency Analytics
-AMZ Tracker
-Authority Labs
-GeoRanker
-Microsite Masters
-NightWatch
-Pro Rank Tracker
-Rank Ranger
-Rival IQ
-SE Ranking
-Search Latte
-Serpfox
-SERPs.com
-SERPWoo
-Sistrix
-WebCEO
-WordTail
-Animalz Revive
-BuzzSumo
-Can I Rank
-ClickFlow
-Google SERP Preview Tool
-Keys4Up
-LSIGraph
-MarketMuse
-MetaTags.io
-nTopic
-Positionly
-Ryte
-SEOptimer
-TrendSpottr
-Upcity
-WordLift
-Ahrefs
-cognitiveSEO
-Kerboo
-Majestic 
-Moz
-MozBar
-SEO PowerSuite
-SEOGadget 
-ShareMetric
-URL Profiler
-WebMeUp Backlink Tool
-Morningfame
-Social Blade
-TubeBuddy
-VidIQ
-YTCockpit
-AuthoritySpy
-Buzzstream
-DIBZ
-disavow.it
-Domain Hunter Plus
-GroupHigh
-HARO 
-JustReachOut
-Linkbird
-Linkody
-Linkstant
-MailShake
-Muck Rack
-Ninja
-Ontolo
-Pitchbox
-Rmoov
-ScrapeBox
-tableau
-qlik
-power bi
-
 
 
 ## 5.3	Years of Experience

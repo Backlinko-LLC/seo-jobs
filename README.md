@@ -4,12 +4,15 @@ by Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)
 
 # Internal Comments & Questions
 
-**Section with comments and questions on the analysis and workflow - let's mostly discuss here**
+* 3 more sections on my list TBD:
+  + 5.4	Years of Experience (1 plot)
+  + 6.2	Salaries per Location (~2 plots)
+  + 6.4	Salaries per job requirement (1 plot)
+
+* List of tools still needed (incl. tools like Power BI, Tableau etc) for section 5.3	Knowledge of Popular Tools
 
 
-
-
-# 0. Data
+# 0. Introduction
 
 We use two data sets:
 
@@ -18,13 +21,13 @@ We use two data sets:
   - subset for "SEO": with 2,387 observations
   - subset for "SEO" and English-speaking offers: with 603 observations
 
-The LinkedIn data contain global job offers while the GlassDoor data only jobs from the US. The LinkedIn data including only job offers with the term `SEO` (or `seo`) contain 2,387 (27,869 for all job offers) observations from English-speaking countries (USA, Canada, UK, Australia, Ireland, South Africa) and 552 (23,81727,869 for all job offers) from the USA and the UK (links starting with `www.linkedin.com`).
+The LinkedIn data contain global job offers while the GlassDoor data only jobs from the US. The LinkedIn data including only job offers with the term `SEO` (or `seo`) contain 2,387 observations from English-speaking countries (USA, Canada, UK, Australia, Ireland, South Africa) and 552 from the USA and the UK (links starting with `www.linkedin.com`).
 
-We merged both data sets and kept as many variables as possible, manually creating new variables for both datasets (GlassDoor: `seniority` and `employment type`; LinkedIn: `sector`) based on text matching of job titles and descriptions. The final worldwide data set contains 3,295 observations (63,003 for all job offers).
+We merged both data sets and kept as many variables as possible, manually creating new variables for both datasets (GlassDoor: `seniority` and `employment type`; LinkedIn: `sector`) based on text matching of job titles and descriptions. We also removed as many duplictaed entries as possible by matching job title, employer and job location. The final worldwide data set contains 3,127 observations.
 
-Because the job offers are collected from all over the world, a lot of foreign terms are included. Thus, we merged the GlassDoor data also with the English subset of the LinkedIn data and kept again as many variables as possible by manually creating new variables for both data sets. The final "All English" data set contains 1,511 observations (28,777 for all job offers).
+Because the job offers are collected from all over the world, a lot of foreign terms are included. Thus, we merged the GlassDoor data also with the English subset of the LinkedIn data and kept again as many variables as possible by manually creating new variables for both data sets. The final "All English" data set contains 1,344 observations.
 
-The GlassDoor data are cleaner with regard to job titles and description than the LinkedIn data. Consequently, some plots using the GlassDoor data do a better job so we provide for now both version (the merged All English data set and the GlassDoor data set).
+The GlassDoor data are cleaner with regard to job titles and description than the LinkedIn data. Consequently, some plots using the GlassDoor data do a better job so we provide for now both version (the merged "All English" data set and the GlassDoor data set).
 
 Also, the GlassDoor data contain information that are missing from the LinkedIn data such as `estimated salary range`, `rating`, `employer`, `industry`, and `size (no. of employees)`.
 
@@ -79,7 +82,15 @@ The modified stacked bar plot shows the number of words found per job category a
 
 ### Chloropleth Map
 
+This map is derived from spatial locations by intersecting cities with state polygons - thus slightly different numbers compared to the hexagonal grid map which uses states as stated by the source.
+
 ![](./plots/png/2_2_map_states_chloro_1.png)
+
+
+Below is a map based on the location information in the data so same numbers as in the hexagonal tile map:
+
+![](./plots/png/2_2_map_states_chloro2_1.png)
+
 
 ### Hexagonal Tile Map
 
@@ -100,43 +111,25 @@ The modified stacked bar plot shows the number of words found per job category a
 
 ![](./plots/png/3_1_size_histo_1.png)
 
-#### (Do larger companies require more specialized tasks?)
+####  (Do larger companies require more specialized tasks?)
 
---> ??? What do we define as "more specialized tasks"?
+CED: What do we define as "more specialized tasks"?
 
-
-#### (Do larger companies require a formal education?)
-
-We extracted from the job descriptiosn the required/desired degree:
-
-* Bachelors ~ `B.Ba.|B.Sc.|BBa|BSc|BBA|BSC|Bachelors`
-* Masters ~ `M.Ba.|M.Sc.|MBa|MSc|MBA|MSC|Masters`
-* Doctorates ~ `Ph.D.|PhD|Doctorate`
-
-![](./plots/png/3_1_size_edu_1.png)
-
-In total we found 39 posisition mentioning Bachelors, 10 Masters and only one with Doctorate.
 
 
 ## 3.2	Revenue
 
-#### Which education level is required by high-revenue companies?
+* How much revenue do hiring companies make?
 
--> I've added this since it's a low hanging fruit after the last section ;)
--> 3 different versiomn to deal with poverplotting of the x-axis labels
+-> Counts of unique companies per revenue class
 
-![](./plots/png/3_2_revenue_edu_small_1.png)
-
-![](./plots/png/3_2_revenue_edu_dodge_1.png)
-
-![](./plots/png/3_2_revenue_edu_angle_1.png)
+![](./plots/png/3_2_revenue_histo_1.png)
 
 
-#### (What type of skill sets are required by high-revenue companies?)
 
---> ??? Can you come up with a list or should I try to extract common words? Don't know yet how to determine those terms between skills and... yeah, what does mark the end of the skill section?
+#### What type of skill sets are required by high-revenue companies?
 
---> So I tokenized the description and removed stop words and numbers as well as manually non-sense/non-skill-related words. There might be more but if we keep it we can have a closer look I would say. Only later realized it has less priority. However, these wordclouds can be used in another context for sure anyway.
+I tokenized the description and removed stop words and numbers as well as manually non-sense/non-skill-related words. There might be more but if we keep it we can have a closer look I would say.
 
 
 ![](./plots/png/3_2_revenue_words_vertical_1.png)
@@ -158,75 +151,92 @@ In total we found 39 posisition mentioning Bachelors, 10 Masters and only one wi
 
 ## 3.4	Company Rating
 
-#### (Do lower rated companies pay less (salary)?)
+#### Do more low- or high-rated companies hire?
 
-![](./plots/png/3_4_rating_salary_1.png)
+-> Counts of unique companies per rating
+
+![](./plots/png/3_4_rating_lolli_1.png)
+
+![](./plots/png/3_4_rating_histo_1.png)
+
 
 #### (Which companies have the highest ratings?)
 
 
 # 4	Job Responsibilities
 
-!!! For section 4. and 5.: To get the words we are looking for, it would be useful to see a simple wordcloud or a df which the tokenized words (single words and bigrams). That way, we can scan through the list and select those that fit to job tasks, programming language, knowledge of popular tools, etc. What do you think? Open to other appraoches.   
-
-Words in the job desciptions with a frequency of 10 or more:
+This is a simple wordcloud of words mentioned in the job descriptions with a frequency of 10 or more. That way, we can scan through the list and select those that are of interest.
 
 ![](./plots/png/4_cloud_word_1.png)
 
-Consecutive sequences of words (*ngrams*) in the job desciptions with a frequency of 10 or more:
+Consecutive sequences of words (*ngrams*) in the job desciptions do not bring any insightful, a lot of phrasings and fill words.
 
-![](./plots/png/4_cloud_sequ_1.png)
-
-
-## 4.1	Job related tasks
-
-#### What job tasks are most often mentioned?
-
-
-## 4.2	Deep dive into job tasks (PPC, content management, technical, etc.)
-
-#### What technical SEO tasks are most often required?
-
---> How will this differ to 1.1 where we look at technical vs non-technical positions? Since I already showed the most common terms here i think it is (almost?) the same plot.
 
 
 # 5	Job Requirements
 
-## 5.1	Programming Languages
+## 5.1	Education
+
+We extracted from the job descriptions the required/desired degree:
+
+* Bachelors ~ `B.Ba.|B.Sc.|BBa|BSc|BBA|BSC|Bachelors`
+* Masters ~ `M.Ba.|M.Sc.|MBa|MSc|MBA|MSC|Masters`
+* Doctorates ~ `Ph.D.|PhD|Doctorate`
+
+#### What type of degrees are most often required (Bachelor vs Master vs Doctorate)?
+
+![](./plots/png/5_1_require_edu_histo_1.png)
+
+In total we found 39 positions mentioning Bachelors, 10 Masters and only one belonging to the Doctorate category.
+
+
+#### Do larger companies require a formal education?
+
+![](./plots/png/5_1_require_edu_size_1.png)
+
+
+#### Which education level is required by high-revenue companies?
+
+-> I've added this since it's a low hanging fruit after the last section ;)
+-> 3 different versions to deal with poverplotting of the x-axis labels
+
+![](./plots/png/5_1_require_edu_revenue_dodge_1.png)
+
+![](./plots/png/5_1_require_edu_revenue_small_1.png)
+
+![](./plots/png/5_1_require_edu_revenue_angle_1.png)
+
+
+
+## 5.2 Programming Languages
 
 #### What programming languages are most often required?
 
 I for now use the programming languages listed by the SO yearly survey:
 JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, TypeScript, C, Ruby, Go, Assembly, Swift, Kotlin, R, VBA, Objective-C, Scala, Rust, Dart, Elixir, Clojure, WebAssembly + Julia
 
-![](./plots/png/5_1_require_prog_1.png)
+![](./plots/png/5_2_require_prog_1.png)
 
 
-#### What languages are most often required in combination (e.g. Html, CSS)
+#### What languages are most often required in combination (e.g. HTML and CSS)
 
-![](./plots/png/5_1_require_prog_comb_1.png)
+![](./plots/png/5_2_require_prog_comb_1.png)
 
 
 
-## 5.2	Knowledge of Popular Tools
+## 5.3	Knowledge of Popular Tools
 
 #### What tools are most often required?
 
---> What's the difference to 5.1, including i.e. Power BI? Do you provide a list of common tools?
+CED: List still needed (incl. tools like Power BI, Tableau etc)
 
 
-## 5.3	Years of Experience
+## 5.4	Years of Experience
 
 #### What type of SEO jobs require +5 years experience?
 
---> Simply filter by "5+ years"? Or search for years and extract number? How to evaluate if they use different ways to say the same?
+CED TBD
 
-
-## 5.4	Degree Requirements
-
-#### What type of degrees are most often required (BS vs MS vs None)?
-
---> Did this already for company info - any other relationship of interest here? Or a simple bar plot showing the three educaiton levels summarized and not for each company size/salary?
 
 
 # 6	Salaries
@@ -235,18 +245,32 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 
 #### What are the typical salary ranges for SEO jobs?
 
+![](./plots/png/6_1_salary_histo_1.png)
 
 
 ## 6.2	Salaries per Location
 
 #### Where do companies pay the most/least?
 
+CED TBD -> Simple bar plot of extreme cities/states
+
 
 ## 6.3	Salaries for different positions
 
-#### What are the highest/lowest paying SEO positions?
+#### (What are the highest/lowest paying SEO positions?)
 
 
-## 6.4	Salaries per job requirements
+## 6.4	Salaries per job requirement
 
 #### Do positions with programming languages pay significantly more?
+
+CED TBD
+
+
+## 6.5	Salaries per Company Rating
+
+#### Do lower rated companies pay less (salary)?
+
+![](./plots/png/6_5_rating_salary_1.png)
+
+#### (Which companies have the highest ratings?)

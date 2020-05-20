@@ -205,7 +205,8 @@ df_gd <- readr::read_csv(here::here("raw_data", "Glassdoor - 2020-04-01-0.csv"))
 ```{r data-linkedin}
 df_li <- readr::read_csv(here::here("raw_data", "Linkedin.csv")) %>% 
   janitor::clean_names() %>% 
-  filter(str_detect(job_title, " seo | SEO"))
+  filter(str_detect(job_title, " seo | SEO")) %>% 
+  mutate(size = as.character(size))
 ```
 
 ```{r combined-data}
@@ -259,7 +260,13 @@ df_world <-
     industry,
     "sector" = job_functions
   ) %>% 
-  bind_rows(df_gd_join)
+  full_join(df_gd_join) %>% 
+  mutate(
+    description = str_replace_all(description, "\\r", " "),
+    description = str_replace_all(description, "\\n", " "),
+    description = str_replace_all(description, "\\s+", " ")
+  ) %>% 
+  distinct(job_title, employer, location, description, .keep_all = TRUE)
 
 ###################################################
 ## only keep pages with language == EN
@@ -329,7 +336,14 @@ df_en <-
       TRUE ~ NA_character_
     )
   ) %>% 
-  bind_rows(df_gd_join)
+  full_join(df_gd_join) %>% 
+  mutate(
+    description = str_replace_all(description, "\\r", " "),
+    description = str_replace_all(description, "\\n", " "),
+    description = str_replace_all(description, "\\s+", " ")
+  ) %>% 
+  distinct(job_title, employer, location, .keep_all = TRUE)
+  #distinct(job_title, employer, location, description, .keep_all = TRUE) ## description often slightly different (diff: 111 offers)
 ```
 
 We use two data sets:
@@ -339,15 +353,16 @@ We use two data sets:
   - subset for "SEO": with 2,387 observations
   - subset for "SEO" and English-speaking offers: with 603 observations
 
-The LinkedIn data contain global job offers while the GlassDoor data only jobs from the US. The LinkedIn data including only job offers with the term `SEO` (or `seo`) contain 2,387 (27,869 for all job offers) observations from English-speaking countries (USA, Canada, UK, Australia, Ireland, South Africa) and 552 (23,81727,869 for all job offers) from the USA and the UK (links starting with `www.linkedin.com`).
+The LinkedIn data contain global job offers while the GlassDoor data only jobs from the US. The LinkedIn data including only job offers with the term `SEO` (or `seo`) contain 2,387 observations from English-speaking countries (USA, Canada, UK, Australia, Ireland, South Africa) and 552 from the USA and the UK (links starting with `www.linkedin.com`).
 
-We merged both data sets and kept as many variables as possible, manually creating new variables for both datasets (GlassDoor: `seniority` and `employment type`; LinkedIn: `sector`) based on text matching of job titles and descriptions. The final worldwide data set contains 3,295 observations (63,003 for all job offers).
+We merged both data sets and kept as many variables as possible, manually creating new variables for both datasets (GlassDoor: `seniority` and `employment type`; LinkedIn: `sector`) based on text matching of job titles and descriptions. We also removed as many duplictaed entries as possible by matching job title, employer and job location. The final worldwide data set contains 3,127 observations.
 
-Because the job offers are collected from all over the world, a lot of foreign terms are included. Thus, we merged the GlassDoor data also with the English subset of the LinkedIn data and kept again as many variables as possible by manually creating new variables for both data sets. The final "All English" data set contains 1,511 observations (28,777 for all job offers).
+Because the job offers are collected from all over the world, a lot of foreign terms are included. Thus, we merged the GlassDoor data also with the English subset of the LinkedIn data and kept again as many variables as possible by manually creating new variables for both data sets. The final "All English" data set contains 1,344 observations.
 
-The GlassDoor data are cleaner with regard to job titles and description than the LinkedIn data. Consequently, some plots using the GlassDoor data do a better job so we provide for now both version (the merged All English data set and the GlassDoor data set).
+The GlassDoor data are cleaner with regard to job titles and description than the LinkedIn data. Consequently, some plots using the GlassDoor data do a better job so we provide for now both version (the merged "All English" data set and the GlassDoor data set).
 
 Also, the GlassDoor data contain information that are missing from the LinkedIn data such as `estimated salary range`, `rating`, `employer`, `industry`, and `size (no. of employees)`.
+
 
 
 # 1. Job Title
@@ -365,24 +380,32 @@ df_en %>%
     n >= 25,
     !word %in% c("seo")
   ) %>% 
-  mutate(word = if_else(word %in% c("sr", "ppc", "sem"), 
-                        str_to_upper(word), 
-                        str_to_title(word))) %>% 
+  mutate(
+    word = if_else(
+      word %in% c("sr", "ppc", "sem"), 
+      str_to_upper(word), 
+      str_to_title(word)
+    )
+  ) %>% 
   ggplot(aes(fct_reorder(word, n), n)) +
     geom_col(fill = bl_col, width = .8) +
-    geom_text(aes(label = n),
-              family = "Overpass Mono",
-              color = "white",
-              fontface = "bold",
-              size = 2.7,
-              hjust = 1,
-              nudge_y = -5) +
+    geom_text(
+      aes(label = n),
+      family = "Overpass Mono",
+      color = "white",
+      fontface = "bold",
+      size = 2.7,
+      hjust = 1,
+      nudge_y = -5
+    ) +
     coord_flip() +
     scale_x_discrete(expand = c(.025, .025)) +
     scale_y_continuous(expand = c(.005, .005)) +
-    labs(x = NULL, 
-         y = "Term frequence in job titles",
-         caption = 'Note: Only words with a frequency of 25 or more shown. The term "SEO" was removed.') +
+    labs(
+      x = NULL, 
+      y = "Term frequence in job titles",
+      caption = 'Note: Only words with a frequency of 25 or more shown. The term "SEO" was removed.'
+    ) +
     theme_flip
 
 if(save == T){
@@ -424,35 +447,46 @@ df_job_ngrams_en <-
   ) %>% 
   mutate(group = fct_relevel(group, "Other", after = Inf))
   
-ggplot(df_job_ngrams_en, 
-       aes(fct_reorder(word, n), n)) +
-    geom_col(aes(fill = group), 
-             width = .8) +
-    geom_text(aes(label = n),
-              family = "Overpass Mono",
-              color = "white",
-              fontface = "bold",
-              size = 3,
-              hjust = 1,
-              nudge_y = -.6) +
+ggplot(
+  df_job_ngrams_en, 
+  aes(fct_reorder(word, n), n)) +
+    geom_col(
+      aes(fill = group), 
+      width = .8
+    ) +
+    geom_text(
+      aes(label = n),
+      family = "Overpass Mono",
+      color = "white",
+      fontface = "bold",
+      size = 3,
+      hjust = 1,
+      nudge_y = -.6
+    ) +
     coord_flip() +
-    scale_y_continuous(expand = c(.01, .01),
-                       limits = c(0, 51)) +
-    scale_fill_manual(name = "Job Category",
-                      values =  c("#2d6db4", "#94346E", "#e49e2e", "#633b96", "#96633b", "#00b877", "#cc503e", "grey50")) +
-                      # values = c("#633b96", "#2889a0", "#1d781d", "#e49e2e", 
-                      #            "#b8318c", "#00b877", "#8d1e14", "grey50")) +
+    scale_y_continuous(
+      expand = c(.01, .01),
+      limits = c(0, 33)
+    ) +
+    scale_fill_manual(
+      name = "Job Category",
+      values =  c("#2d6db4", "#94346E", "#e49e2e", "#633b96", "#96633b", "#00b877", "#cc503e", "grey50")
+    ) +
     guides(fill = guide_legend(ncol = 1)) +
-    labs(x = NULL, 
-         y = "Frequence of word sequence in job titles",
-         caption = 'Note: Only sequences with a frequency of 10 or more shown. The sequence "Search Engine Optimization" was removed.') +
+    labs(
+      x = NULL, 
+      y = "Frequence of word sequence in job titles",
+      caption = 'Note: Only sequences with a frequency of 10 or more shown. The sequence "Search Engine Optimization" was removed.'
+    ) +
     theme_flip +
-    theme(legend.position = c(.67, .678),
-          legend.key.size = unit(3, "pt"),
-          legend.key.width = unit(30, "pt"))
+    theme(
+      legend.position = c(.76, .45),
+      legend.key.size = unit(3, "pt"),
+      legend.key.width = unit(30, "pt")
+    )
 
 if(save == T){
-  ggsave(here::here("plots", "1_1_jobs_cat.pdf"), width = 12, height = 9.5, device = cairo_pdf)
+  ggsave(here::here("plots", "1_1_jobs_cat.pdf"), width = 12, height = 7.5, device = cairo_pdf)
 }
 ```
 
@@ -463,7 +497,7 @@ We manually classified in technical and non-technical positions, removing all wo
 ## technical: analyst, engineer, developer, technician, optimization,
 ## non-technical: manager, director, writer, consultant, coordinator, editor, marketing, sales, social media 
 
-df_polar <-
+df_stack <-
   df_en %>% 
   unnest_tokens(word, job_title, token = "words") %>% 
   anti_join(stop_words) %>% 
@@ -493,7 +527,7 @@ df_polar <-
     pos_cont = min(pos) + (max(pos) - min(pos)) / 2
   ) 
 
-df_polar %>% 
+df_stack %>% 
   ggplot(aes(1, n)) +
     geom_col(
       aes(
@@ -506,58 +540,99 @@ df_polar %>%
       size = .1
     ) +
     geom_col(
-      aes(fill = type,
-          color = type,
-          fill = after_scale(colorspace::darken(fill, .3)),
-          color = after_scale(colorspace::darken(color, .3))),
+      aes(
+        fill = type,
+        color = type,
+        fill = after_scale(colorspace::darken(fill, .3)),
+        color = after_scale(colorspace::darken(color, .3))
+      ),
       width = .4,
       size = .1
     ) +
     geom_rect(
-      xmin = -Inf, xmax = .8,
-      ymin = -Inf, ymax = Inf,
+      xmin = -Inf, 
+      xmax = .8,
+      ymin = -Inf, 
+      ymax = Inf,
       fill = "white"
     ) +
-    geom_text(data = df_polar %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont)),
-              aes(1, pos_cont + 35, 
-                  label = glue::glue("{type}\ntitle terms")),
-              family = "Montserrat",
-              fontface = "bold",
-              color = "white",
-              size = 8,
-              lineheight = .9,
-              hjust = .5,
-              vjust = 0) +
-    geom_text(data = df_polar %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont), sum = format(unique(sum), big.mark = ",")),
-              aes(1, pos_cont, 
-                  label = sum),
-              family = "Overpass",
-              color = "white",
-              size = 10,
-              lineheight = .9,
-              hjust = .5,
-              vjust = .5) +
-    geom_text(data = df_polar %>% filter(n >= 10),
-              aes(1.47, pos, 
-                  label = word, 
-                  color = type,
-                  color = after_scale(colorspace::darken(color, .15)),
-                  hjust = 0,
-                  size = n),
-              family = "Montserrat", 
-              fontface = "bold") +
-    geom_text(data = df_polar %>% filter(n >= 10),
-              aes(1.33, pos, 
-                  label = n, 
-                  hjust = .5,
-                  size = n / 2),
-              family = "Overpass", 
-              color = "white") +
+    geom_text(
+      data = df_stack %>% group_by(type) %>% summarize(pos_cont = unique(pos_cont)),
+      aes(
+        x = 1, 
+        y = pos_cont + 35, 
+        label = glue::glue("{type}\ntitle terms")
+      ),
+      family = "Montserrat",
+      fontface = "bold",
+      color = "white",
+      size = 8,
+      lineheight = .9,
+      hjust = .5,
+      vjust = 0
+    ) +
+    geom_text(
+      data = df_stack %>% 
+        group_by(type) %>% 
+        summarize(
+          pos_cont = unique(pos_cont), 
+          sum = format(unique(sum), big.mark = ",")
+        ),
+        aes(
+          x = 1, 
+          y = pos_cont, 
+          label = sum
+        ),
+        family = "Overpass",
+        color = "white",
+        size = 10,
+        lineheight = .9,
+        hjust = .5,
+        vjust = .5
+    ) +
+    geom_text(
+      data = df_stack %>% filter(n >= 10),
+      aes(
+        x = 1.47, 
+        y = pos, 
+        label = word, 
+        color = type,
+        color = after_scale(colorspace::darken(color, .15)),
+        size = n
+      ),
+      family = "Montserrat", 
+      fontface = "bold",
+      hjust = 0
+    ) +
+    geom_text(
+      data = df_stack %>% filter(n >= 10),
+      aes(
+        x = 1.33, 
+        y = pos, 
+        label = n,
+        size = n / 2
+      ),
+      family = "Overpass", 
+      color = "white", 
+      hjust = .5
+    ) +
     scale_x_continuous(limits = c(0.5, 2.15)) +
-    scale_color_manual(values = c(bl_col, "#8800d1"), guide = F) +
-    scale_fill_manual(values = c(bl_col, "#8800d1"), guide = F) + 
-    scale_alpha(range = c(.3, 1), guide = F) +
-    scale_size(range = c(1.5, 15), guide = F) +
+    scale_color_manual(
+      values = c(bl_col, "#8800d1"), 
+      guide = F
+    ) +
+    scale_fill_manual(
+      values = c(bl_col, "#8800d1"), 
+      guide = F
+    ) + 
+    scale_alpha(
+      range = c(.3, 1), 
+      guide = F
+    ) +
+    scale_size(
+      range = c(1.5, 15), 
+      guide = F
+    ) +
     theme_void()
 
 if(save == T){
@@ -636,6 +711,7 @@ df_loc_world <-
 #   st_transform(st_crs(world)) 
 ```
 
+
 ### Data English-Speaking
 
 ```{r map-prep-english}
@@ -702,7 +778,6 @@ sf_map_us_long <-
 ```
 
 
-
 ## 2.1 Hot Spots (Cities)
 
 #### Global Bubble Map 
@@ -759,50 +834,80 @@ sf_map_us_long <-
 sf_map_us %>% 
   arrange(-n) %>% 
   ggplot() +
-    # geom_sf(data = world, 
-    #         #color = colorspace::darken(bl_col, .05), 
-    #         color = "grey60",
-    #         alpha = .2,
-    #         lwd = 3) +
-    geom_sf(data = sf_world, 
-            color = "grey60",
-            fill = colorspace::lighten("#374b45", .15),
-            lwd = .4) +
-    geom_sf(data = sf_world %>% filter(ISO_A3 == "USA"), 
-            color = "grey60",
-            fill = "#374b45",
-            lwd = .4) +
-    geom_sf(aes(size = n),
-            color = "white",
-            show.legend = "point") +
-    geom_sf(aes(size = n),
-            shape = 21,
-            color = colorspace::darken(bl_col, .2),
-            fill = NA,
-            stroke = .1,
-            show.legend = "point") +
-    geom_sf(aes(size = n, color = n),
-            color = bl_col,
-            alpha = .1,
-            show.legend = "point") +
-    coord_sf(xlim = c(-2300000, 2900000), 
-             ylim = c(-2200000, 1000000)) +
-    scale_size(range = c(1, 25), 
-               breaks = c(1, 10, 50, 100),
-               name = "Number of\njob offers") +
-    guides(size = guide_legend(title.position = "top", 
-                                title.hjust = .5, 
-                                nrow = 1,
-                                label.position = "bottom",
-                                override.aes = list(shape = 21, color = bl_col, fill = colorspace::lighten(bl_col, .9), stroke = 1))) +
+    # geom_sf(
+    #   data = world, 
+    #   #color = colorspace::darken(bl_col, .05), 
+    #   color = "grey60",
+    #   alpha = .2,
+    #   lwd = 3
+    # ) +
+    geom_sf(
+      data = sf_world, 
+      color = "grey60",
+      fill = colorspace::lighten("#374b45", .15),
+      lwd = .4
+    ) +
+    geom_sf(
+      data = sf_world %>% filter(ISO_A3 == "USA"), 
+      color = "grey60",
+      fill = "#374b45",
+      lwd = .4
+    ) +
+    geom_sf(
+      aes(size = n),
+      color = "white",
+      show.legend = "point"
+    ) +
+    geom_sf(
+      aes(size = n),
+      shape = 21,
+      color = colorspace::darken(bl_col, .2),
+      fill = NA,
+      stroke = .1,
+      show.legend = "point"
+    ) +
+    geom_sf(
+      aes(
+        size = n, 
+        color = n
+      ),
+      color = bl_col,
+      alpha = .1,
+      show.legend = "point"
+    ) +
+    coord_sf(
+      xlim = c(-2300000, 2900000), 
+      ylim = c(-2200000, 1000000)
+    ) +
+    scale_size(
+      range = c(1, 25), 
+      breaks = c(1, 10, 50, 100),
+      name = "Number of\njob offers"
+    ) +
+    guides(
+      size = guide_legend(
+        title.position = "top", 
+        title.hjust = .5, 
+        nrow = 1,
+        label.position = "bottom",
+        override.aes = list(
+          shape = 21, 
+          color = bl_col, 
+          fill = colorspace::lighten(bl_col, .9), 
+          stroke = 1
+        )
+      )
+    ) +
     theme_map +
-    theme(legend.position = c(.1, .12),
-          legend.title = element_text(color = "grey90", margin = margin(0, 0, -5, 0)),
-          legend.text = element_text(color = "grey90", margin = margin(-5, 0, 0, 0)),
-          panel.background = element_rect(fill = "grey30"),
-          panel.border = element_rect(color = "grey60", fill = "transparent", size = 4.5),
-          panel.grid.major = element_line(color = "grey45", size = .4, linetype = "dashed"),
-          plot.margin = margin(0, 0, 0, 0))
+    theme(
+      legend.position = c(.1, .12),
+      legend.title = element_text(color = "grey90", margin = margin(0, 0, -5, 0)),
+      legend.text = element_text(color = "grey90", margin = margin(-5, 0, 0, 0)),
+      panel.background = element_rect(fill = "grey30"),
+      panel.border = element_rect(color = "grey60", fill = "transparent", size = 4.5),
+      panel.grid.major = element_line(color = "grey45", size = .4, linetype = "dashed"),
+      plot.margin = margin(0, 0, 0, 0)
+    )
 
 if(save == T){ 
   ggsave(here::here("plots", "2_1_map_northamerica_cities.pdf"), 
@@ -817,43 +922,63 @@ if(save == T){
 sf_map_us %>% 
   arrange(-n) %>% 
   ggplot() +
-    geom_sf(data = sf_states, 
-            #color = colorspace::darken(bl_col, .05), 
-            color = "grey60",
-            alpha = .3,
-            lwd = 5) +
-    geom_sf(data = sf_states, 
-            color = "white", 
-            fill = "#cedbd7",
-            lwd = .5) +
-    geom_sf(aes(size = n),
-            color = "white",
-            show.legend = "point") +
-    geom_sf(aes(size = n), 
-            shape = 21, 
-            color = colorspace::darken(bl_col, .2),
-            fill = NA,
-            stroke = .4,
-            show.legend = "point") +
-    geom_sf(aes(size = n, color = n), 
-            color = bl_col,
-            alpha = .1,
-            show.legend = "point") +
-    scale_size(range = c(3, 30), 
-               breaks = c(1, 10, 25, 50, 100),
-               name = "Number of job offers") +
-    guides(size = guide_legend(title.position = "top", 
-                               title.hjust = .5, 
-                               nrow = 1,
-                               label.position = "bottom",
-                               override.aes = list(shape = 21, 
-                                                   color = bl_col, 
-                                                   fill = colorspace::lighten(bl_col, .9), 
-                                                   stroke = 1))) +
+    geom_sf(
+      data = sf_states, 
+      #color = colorspace::darken(bl_col, .05), 
+      color = "grey60",
+      alpha = .3,
+      lwd = 5
+    ) +
+    geom_sf(
+      data = sf_states, 
+      color = "#cedbd7",#"white", 
+      fill = colorspace::darken("#cedbd7", .15, space = "HLS"),
+      lwd = .5
+    ) +
+    geom_sf(
+      aes(size = n),
+      color = "white",
+      show.legend = "point"
+    ) +
+    geom_sf(
+      aes(size = n), 
+      shape = 21, 
+      color = colorspace::darken(bl_col, .2),
+      fill = NA,
+      stroke = .4,
+      show.legend = "point"
+    ) +
+    geom_sf(
+      aes(size = n, color = n), 
+      color = bl_col,
+      alpha = .1,
+      show.legend = "point"
+    ) +
+    scale_size(
+      range = c(3, 30), 
+      breaks = c(1, 10, 25, 50, 100),
+      name = "Number of job offers"
+    ) +
+    guides(
+      size = guide_legend(
+        title.position = "top", 
+        title.hjust = .5, 
+        nrow = 1,
+        label.position = "bottom",
+        override.aes = list(
+          shape = 21, 
+          color = bl_col, 
+          fill = colorspace::lighten(bl_col, .9), 
+          stroke = 1
+        )
+      )
+    ) +
     theme_map +
-    theme(legend.position = c(.2, .1),
-          legend.title = element_text(margin = margin(0, 0, -5, 0)),
-          legend.text = element_text(margin = margin(-10, 0, 0, 0)))
+    theme(
+      legend.position = c(.2, .1),
+      legend.title = element_text(margin = margin(0, 0, -5, 0)),
+      legend.text = element_text(margin = margin(-10, 0, 0, 0))
+    )
 
 if(save == T){ 
   ggsave(here::here("plots", "2_1_map_states_cities.pdf"), 
@@ -882,38 +1007,123 @@ centroids <-
 
 sf_states_count %>% 
   ggplot() +
-    geom_sf(aes(fill = pt_count), 
-            color = "grey80", 
-            size = .6) +
+    geom_sf(
+      aes(fill = pt_count), 
+      color = "grey80", 
+      size = .6
+    ) +
     #geom_sf(data = sf_map_en_long) +
-    rcartocolor::scale_fill_carto_c(palette = "Emrld", 
-                                    na.value = "grey96",
-                                    breaks = c(1, seq(25, 200, by = 25)),
-                                    name = "Number of job offers") +
-    geom_sf_text(data = sf_states_count %>% filter(name != "Maryland", pt_count < 100), 
-                 aes(label = pt_count),
-                 family = "Overpass",
-                 fontface = "bold") +
-    geom_sf_text(data = sf_states_count %>% filter(name != "Maryland", pt_count >= 100), 
-                 aes(label = pt_count),
-                 family = "Overpass",
-                 fontface = "bold",
-                 color = "white") +
-    geom_sf_text(data = sf_states_count %>% filter(name == "Maryland"), 
-                 aes(label = pt_count),
-                 family = "Overpass",
-                 fontface = "bold",
-                 nudge_y = 35000) +
-    guides(fill = guide_colorbar(title.position = "top",
-                                 title.hjust = .5,
-                                 label.position = "bottom",
-                                 barwidth = unit(30, "lines"),
-                                 barheight = unit(.6, "lines"))) +
+    rcartocolor::scale_fill_carto_c(
+      palette = "Emrld", 
+      na.value = "grey96",
+      breaks = c(1, seq(25, 200, by = 25)),
+      name = "Number of job offers"
+    ) +
+    geom_sf_text(
+      data = sf_states_count %>% filter(name != "Maryland", pt_count < 100), 
+      aes(label = pt_count),
+      family = "Overpass",
+      fontface = "bold"
+    ) +
+    geom_sf_text(
+      data = sf_states_count %>% filter(name != "Maryland", pt_count >= 100), 
+      aes(label = pt_count),
+      family = "Overpass",
+      fontface = "bold",
+      color = "white"
+    ) +
+    geom_sf_text(
+      data = sf_states_count %>% filter(name == "Maryland"), 
+      aes(label = pt_count),
+      family = "Overpass",
+      fontface = "bold",
+      nudge_y = 35000
+    ) +
+    guides(fill = guide_colorbar(
+      title.position = "top",
+      title.hjust = .5,
+      label.position = "bottom",
+      barwidth = unit(30, "lines"),
+      barheight = unit(.6, "lines"))
+    ) +
     theme_map +
     theme(legend.position = c(.5, .95))
 
 if(save == T){ 
   ggsave(here::here("plots", "2_2_map_states_chloro.pdf"), 
+         width = 15, height = 9.7, device = cairo_pdf) 
+}
+```
+
+(This map is derived from spatial locations by intersecting cities with state polygons - thus slightly different numbers compared to the hexagonal grid map which uses states as stated by the source.)
+
+
+```{r 2-3-map-states-chloropleth-source, fig.width = 15, fig.height = 9.7}
+df_states_join <-
+  df_loc_en %>% 
+  mutate(location = str_replace(location, ", United States|, US", "")) %>% 
+  mutate(state_mixed = str_extract(location, "[^, ]*$")) 
+
+sf_states_count <-
+  sf_states %>% 
+  left_join(df_states_join, by = c("iso_3166_2" = "state_mixed")) %>%
+  filter(!is.na(geo_id)) %>% 
+  group_by(name) %>% 
+  summarize(n = sum(n, na.rm = T)) %>% 
+  mutate(n = if_else(n == 0, NA_integer_, n)) %>% 
+  ungroup()
+
+## centroids for labels
+centroids <- 
+  sf_states_count %>% 
+  st_centroid()
+
+sf_states_count %>% 
+  ggplot() +
+    geom_sf(
+      aes(fill = n), 
+      color = "grey80", 
+      size = .6
+    ) +
+    #geom_sf(data = sf_map_en_long) +
+    rcartocolor::scale_fill_carto_c(
+      palette = "Emrld", 
+      na.value = "grey96",
+      breaks = c(1, seq(25, 200, by = 25)),
+      name = "Number of job offers"
+    ) +
+    geom_sf_text(
+      data = sf_states_count %>% filter(name != "Maryland", n < 100), 
+      aes(label = n),
+      family = "Overpass",
+      fontface = "bold"
+    ) +
+    geom_sf_text(
+      data = sf_states_count %>% filter(name != "Maryland", n >= 100), 
+      aes(label = n),
+      family = "Overpass",
+      fontface = "bold",
+      color = "white"
+    ) +
+    geom_sf_text(
+      data = sf_states_count %>% filter(name == "Maryland"), 
+      aes(label = n),
+      family = "Overpass",
+      fontface = "bold",
+      nudge_y = 35000
+    ) +
+    guides(fill = guide_colorbar(
+      title.position = "top",
+      title.hjust = .5,
+      label.position = "bottom",
+      barwidth = unit(30, "lines"),
+      barheight = unit(.6, "lines"))
+    ) +
+    theme_map +
+    theme(legend.position = c(.5, .95))
+
+if(save == T){ 
+  ggsave(here::here("plots", "2_2_map_states_chloro2.pdf"), 
          width = 15, height = 9.7, device = cairo_pdf) 
 }
 ```
@@ -956,7 +1166,8 @@ df_hex <-
 ## centroids for labels
 centroids <- cbind.data.frame(data.frame(gCentroid(map_hex, byid = T), 
                                          id = map_hex@data$iso3166_2,
-                                         id_long = str_wrap(map_hex@data$google_name, 12))) %>% 
+                                         id_long = map_hex@data$google_name,
+                                         id_wrap = str_wrap(map_hex@data$google_name, 12))) %>% 
   left_join(df_hex, by = c("id_long" = "id")) %>% 
   group_by(id) %>% 
   slice(1) %>% 
@@ -965,47 +1176,70 @@ centroids <- cbind.data.frame(data.frame(gCentroid(map_hex, byid = T),
 
 ```{r 2-2-map-states-hex, fig.width = 15, fig.height = 9.7}
 df_hex %>%
-  replace_na(list(n = 0)) %>% 
+  replace_na(list(n = 0)) %>%
   ggplot() +
-    geom_polygon(aes(long, lat, 
-                     group = group, 
-                     fill = n), 
-                 color = colorspace::darken(bl_col, .1),
-                 #color = "grey60",
-                 lwd = .8) +
-    geom_text(data = centroids, 
-              aes(x = x, y = y + 0.35,
-                  label = n,
-                  alpha = n),
-              family = "Montserrat",
-              fontface = "bold",
-              size = 7.5,
-              color = colorspace::darken(bl_col, .6),
-              vjust = .2) +
-    geom_text(data = centroids, 
-              aes(x = x, y = y - 0.3, label = id_long),
-              family = "Montserrat",
-              fontface = "bold",
-              size = 3.2,
-              lineheight = 0.85,
-              vjust = 1) +
+    geom_polygon(
+      aes(
+        long, lat, 
+        group = group, 
+        fill = n
+      ), 
+      color = colorspace::darken(bl_col, .1),
+      #color = "grey60",
+      lwd = .8
+    ) +
+    geom_text(
+      data = centroids, 
+      aes(
+        x = x, 
+        y = y + 0.35,
+        label = n,
+        alpha = n
+      ),
+      family = "Montserrat",
+      fontface = "bold",
+      size = 7.5,
+      color = colorspace::darken(bl_col, .6),
+      vjust = .2
+    ) +
+    geom_text(
+      data = centroids, 
+      aes(
+        x = x, 
+        y = y - 0.3, 
+        label = id_wrap
+      ),
+      family = "Montserrat",
+      fontface = "bold",
+      size = 3.2,
+      lineheight = 0.85,
+      vjust = 1
+    ) +
     coord_map() + 
-    scale_fill_gradient(low = "grey95", 
-                        high = colorspace::darken(bl_col, .1), 
-                        name = "Number of job offers",
-                        limits = c(0, 200),
-                        breaks = seq(0, 200, by = 25)) +
-    scale_alpha(range = c(.25, 1), 
-                guide = F) +
-    guides(fill = guide_colorbar(barheight = unit(5, units = "mm"),  
-                                 barwidth = unit(150, units = "mm"),
-                                 direction = "horizontal",
-                                 ticks.colour = "#e8d8c3",
-                                 title.position = "top",
-                                 title.hjust = 0.5)) +
+    scale_fill_gradient(
+      low = "grey95", 
+      high = colorspace::darken(bl_col, .1), 
+      name = "Number of job offers",
+      limits = c(0, 200),
+      breaks = seq(0, 200, by = 25)
+    ) +
+    scale_alpha(
+      range = c(.25, 1), 
+      guide = F
+    ) +
+    guides(fill = guide_colorbar(
+      barheight = unit(5, units = "mm"),  
+      barwidth = unit(150, units = "mm"),
+      direction = "horizontal",
+      ticks.colour = "#e8d8c3",
+      title.position = "top",
+      title.hjust = 0.5)
+    ) +
     theme_map +
-    theme(legend.position = c(.5, .9),
-          legend.text = element_text(size = 14))
+    theme(
+      legend.position = c(.5, .9),
+      legend.text = element_text(size = 14)
+    )
 
 if(save == T){ 
   ggsave(here::here("plots", "2_2_map_states_hex.pdf"), 
@@ -1028,36 +1262,53 @@ sf_counties %>%
     pt_count = if_else(pt_count == 0, NA_integer_, pt_count),
   ) %>% 
   ggplot() +
-    geom_sf(aes(fill = pt_count), 
-            color = "grey80", 
-            size = .2) +
-    geom_sf(data = sf_states, 
-            fill = NA, 
-            color = "grey50", 
-            size = .3) +
+    geom_sf(
+      aes(fill = pt_count), 
+      color = "grey80", 
+      size = .2
+    ) +
+    geom_sf(
+      data = sf_states, 
+      fill = NA, 
+      color = "grey50", 
+      size = .3
+    ) +
     #geom_sf(data = sf_map_en_long) +
-    geom_segment(x = 1600000, xend = 2142000,
-                 y = 250000, yend = -125000,
-                 arrow = arrow(length = unit(0.015, "npc")),
-                 color = "grey40",
-                 size = .5) +
-    geom_text(x = 1600000, y = 276000, 
-              label = "New York:\n155 job offers",
-              family = "Montserrat",
-              color = "grey40",
-              size = 3.5,
-              lineheight = .9,
-              vjust = 0) +
-    rcartocolor::scale_fill_carto_c(palette = "Emrld", 
-                                    na.value = "grey96",
-                                    name = "Number of job offers",
-                                    breaks = c(1, seq(10, 60, by = 10)),
-                                    limits = c(NA, 60)) +
-    guides(fill = guide_colorbar(title.position = "top",
-                                 title.hjust = .5,
-                                 label.position = "bottom",
-                                 barwidth = unit(30, "lines"),
-                                 barheight = unit(.6, "lines"))) +
+    geom_segment(
+      x = 1600000, 
+      xend = 2142000,
+      y = 250000, 
+      yend = -125000,
+      arrow = arrow(length = unit(0.015, "npc")),
+      color = "grey40",
+      size = .5
+    ) +
+    geom_text(
+      x = 1600000, 
+      y = 276000, 
+      label = "New York:\n155 job offers",
+      family = "Montserrat",
+      color = "grey40",
+      size = 3.5,
+      lineheight = .9,
+      vjust = 0
+    ) +
+    rcartocolor::scale_fill_carto_c(
+      palette = "Emrld", 
+      na.value = "grey96",
+      name = "Number of job offers",
+      breaks = c(1, seq(10, 60, by = 10)),
+      limits = c(NA, 60)
+    ) +
+    guides(
+      fill = guide_colorbar(
+        title.position = "top",
+        title.hjust = .5,
+        label.position = "bottom",
+        barwidth = unit(30, "lines"),
+        barheight = unit(.6, "lines")
+      )
+    ) +
     theme_map +
     theme(legend.position = c(.5, .95))
 
@@ -1066,6 +1317,8 @@ if(save == T){
          width = 15, height = 9.7, device = cairo_pdf) 
 }
 ```
+
+(This map is derived from spatial locations by intersecting cities with county polygons - thus there might be small differences compared to the state-level maps.)
 
 
 
@@ -1076,7 +1329,7 @@ if(save == T){
 ```{r data-prep-size}
 df_size <- 
   df_gd %>% 
-  dplyr::select(size, description) %>% 
+  dplyr::select(employer, size, description) %>% 
   mutate(
     size = if_else(is.na(size), "Unknown", size),
     size = str_replace(size, " employees", ""),
@@ -1093,21 +1346,34 @@ df_size <-
 
 * How large are companies that hire? 
 
-```{r 3-1-size-histogram-size, fig.width = 12, fig.height = 8}
+-> Counts of unique companies per size class
+
+```{r 3-1-size-histogram, fig.width = 12, fig.height = 8}
 df_size %>% 
   group_by(size) %>% 
-  count() %>%
+  summarize(n = n_distinct(employer)) %>% 
   mutate(col = if_else(size == "Unknown", "A", "B")) %>% 
   ggplot(aes(size, n)) +
-    geom_col(aes(fill = col, 
-                 color = after_scale(colorspace::darken(fill, .4))),
-             width = .85,
-             size = 1) +
-    scale_y_continuous(expand = c(.0075, .0075)) +
-    scale_fill_manual(values = c("grey60", bl_col),
-                      guide = F) +
-    labs(x = "Number of employees", 
-         y = "Number of companies") +
+    geom_col(
+      aes(
+        fill = col, 
+        color = after_scale(colorspace::darken(fill, .4))
+      ),
+      width = .85,
+      size = 1
+    ) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, 195)
+    ) +
+    scale_fill_manual(
+      values = c("grey60", bl_col),
+      guide = F
+    ) +
+    labs(
+      x = "Number of employees", 
+      y = "Number of companies"
+    ) +
     theme(panel.grid.major.x = element_blank())
 
 if(save == T){ 
@@ -1117,68 +1383,18 @@ if(save == T){
 ```
 
 
-* Do larger companies require more specialized tasks? 
+* (Do larger companies require more specialized tasks?)
 
---> What do we define as "more specialized tasks"?
+CED: What do we define as "more specialized tasks"?
 
 
-* Do larger companies require a formal education?
-
-```{r 3-1-size-education, fig.width = 12, fig.height = 7.5}
-df_size_edu <-
-  df_size %>% 
-  mutate(
-    bachelors = if_else(str_detect(description, "B.Ba.|B.Sc.|BBa|BSc|BBA|BSC|Bachelors"), 1, 0),
-    masters = if_else(str_detect(description, "M.Ba.|M.Sc.|MBa|MSc|MBA|MSC|Masters"), 1, 0),
-    doctorate = if_else(str_detect(description, "Ph.D.|PhD|Doctorate"), 1, 0)
-  ) %>% 
-  dplyr::select(size, bachelors, masters, doctorate) %>% 
-  pivot_longer(
-    cols = c(bachelors, masters, doctorate),
-    names_to = "education",
-    values_to = "yes_no"
-  ) %>%
-  group_by(size) %>% 
-  mutate(
-    total = n(),
-    education = str_to_title(education),
-    education = factor(education, levels = c("Doctorate", "Masters", "Bachelors"))
-  ) %>% 
-  group_by(size, education) %>% 
-  summarize(rel = sum(yes_no) / unique(total)) %>% 
-  ungroup()
-
-ggplot(df_size_edu, 
-       aes(size, rel, 
-           fill = education)) +
-  geom_col(width = .8) +
-  scale_y_continuous(expand = c(.0005, .0005),
-                     limits = c(0, .031),
-                     labels = scales::percent_format()) +
-  scale_fill_manual(values = cols_degree, 
-                    name = "Required degree:") +
-  guides(fill = guide_legend(reverse = T)) +
-  theme(legend.text = element_text(size = 14),
-        panel.grid.major.x = element_blank()) +
-  labs(x = "Number of employees", 
-       y = "Percentage")
-
-if(save == T){ 
-  ggsave(here::here("plots", "3_1_size_edu.pdf"), 
-         width = 12, height = 7.5, device = cairo_pdf) 
-}
-```
-
-Bachelors: 38
-Masters: 10
-Doctorate: 1
 
 ## 3.2	Revenue
 
 ```{r data-prep-revenue}
 df_revenue <-
   df_gd %>% 
-  dplyr::select(revenue, description) %>% 
+  dplyr::select(revenue, employer, description) %>% 
   mutate(
     revenue = if_else(revenue == "Unknown / Non-Applicable", "Unknown", revenue),
     revenue = if_else(is.na(revenue), "Unknown", revenue),
@@ -1197,9 +1413,481 @@ df_revenue <-
 ```
 
 
+* How much revenue do hiring companies make? 
+
+-> Counts of unique companies per revenue class
+
+```{r 3-2-revenue-histogram, fig.width = 12, fig.height = 8}
+df_revenue %>% 
+  group_by(revenue) %>% 
+  summarize(n = n_distinct(employer)) %>% 
+  filter(revenue != "Unknown") %>% 
+  ggplot(aes(revenue, n)) +
+    geom_col(
+      fill = bl_col, 
+      color = after_scale(colorspace::darken(bl_col, .4, space = "HLS")),
+      width = .8,
+      size = 1
+    ) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, NA)
+    ) +
+    labs(
+      x = "Number of employees", 
+      y = "Revenue"
+    ) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      axis.text.x = element_text(size = 10)
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "3_2_revenue_histo.pdf"), 
+         width = 12, height = 8, device = cairo_pdf) 
+}
+```
+
+
+* What type of skill sets are required by high-revenue companies?
+
+I tokenized the description and removed stop words and numbers as well as manually non-sense/non-skill-related words. There might be more but if we keep it we can have a closer look I would say.
+
+```{r 3-2-revenue-skills, fig.width = 12, fig.height = 7.5}
+df_rev_skills <-   
+  df_revenue %>% 
+  unnest_tokens(word, description, token = "words") %>% 
+  anti_join(stop_words) %>% 
+  filter(
+    !word %in% c("seo","experience", "skills", "skill", "ability", "requirement", "requirements", "link", "required", "provide", "day", "email", "based", "growth", "recommendations", "employment", "paid", "payment", "key", "gender", "equal", "applicants", "application", "disability", "disabilities", "world", "qualifications", "multiple", "page", "pages", "related", "site", "candidate", "insurance", "company", "agency", "office", "position"),
+    !str_detect(word, "[0-9+]")
+  ) %>% 
+  mutate(word = if_else(word == "teams", "team", word))
+
+set.seed(2020)
+
+cloud_low <-
+  df_rev_skills %>% 
+  filter(revenue %in% c("< $1M", "$1–5M", "$5–10M", "$10–25M",
+                        "$25–50M", "$50–100M")) %>% 
+  count(word, sort = T) %>% 
+  top_n(75, n) %>% 
+  ggplot(aes(label = word, size = n, color = n)) +
+    geom_text_wordcloud(
+      family = "Montserrat",
+      fontface = "bold",
+      shape = "square",
+      grid_margin = 2.5
+    ) +
+    rcartocolor::scale_color_carto_c(palette = "Emrld") +
+    scale_size_area(max_size = 7) +
+    labs(title = "\nCompanies with revenues lower than $100M") +
+    theme_minimal()
+
+cloud_high <-
+  df_rev_skills %>% 
+  filter(revenue %in% c("$100–500M", "$500M–1B",
+                        "$1–2B", "$2–5B", "$5–10B", "> $10B")) %>% 
+  count(word, sort = T) %>% 
+  top_n(75, n) %>% 
+  ggplot(aes(label = word, size = n, color = n)) +
+    geom_text_wordcloud(
+      family = "Montserrat",
+      fontface = "bold",
+      shape = "square",
+      grid_margin = 2.5
+    ) +
+    rcartocolor::scale_color_carto_c(palette = "Emrld") +
+    scale_size_area(max_size = 7) +
+    labs(title = "\nCompanies with revenues higher than $100M") +
+    theme_minimal()
+
+## vertical allignment
+(cloud_low / cloud_high) * 
+  theme(plot.title = element_text(family = "Montserrat", size = 14, face = "bold", 
+                                  hjust = .5, margin = margin(b = -30)))
+
+if(save == T){ 
+  ggsave(here::here("plots", "3_2_revenue_words_vertical.pdf"), 
+         width = 11, height = 8, device = cairo_pdf) 
+}
+
+
+## horizontal allignment
+(cloud_low + cloud_high) * 
+  theme(plot.title = element_text(family = "Montserrat", size = 14, face = "bold", 
+                                  hjust = .5, margin = margin(b = -15)))
+
+if(save == T){ 
+  ggsave(here::here("plots", "3_2_revenue_words_horizontal.pdf"), 
+         width = 11, height = 5, device = cairo_pdf) 
+}
+```
+
+
+
+## 3.3	Sector/Industry
+
+* What type of companies hire SEOs? 
+
+```{r 3-3-sector}
+df_gd %>% 
+  filter(!is.na(sector)) %>% 
+  group_by(sector) %>% 
+  count(sort = T) %>% 
+  ungroup() %>% 
+  mutate(sector = fct_reorder(factor(sector), n)) %>% 
+  ggplot(aes(sector, n)) +
+    geom_col(
+      width = .8, 
+      fill = bl_col
+    ) +
+    geom_text(
+      aes(label = n),
+      family = "Overpass Mono",
+      color = "grey40",
+      fontface = "bold",
+      hjust = 0,
+      nudge_y = 3,
+      size = 2.7
+    ) +
+    coord_flip() +
+    scale_y_continuous(
+      expand = c(.01, .01),
+      limits = c(0, 345),
+      breaks = seq(0, 300, by = 50)
+    ) +
+    labs(
+      x = NULL, 
+      y = "Number of job offers by sector"
+    ) +
+    theme_flip
+
+if(save == T){ 
+  ggsave(here::here("plots", "3_3_sector_counts.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+```
+
+```{r 3-3-industry}
+df_gd %>% 
+  filter(!is.na(industry)) %>% 
+  group_by(industry) %>% 
+  count(sort = T) %>% 
+  filter(n > 4) %>% 
+  ungroup() %>% 
+  mutate(industry = fct_reorder(factor(industry), n)) %>% 
+  ggplot(aes(industry, n)) +
+    geom_col(
+      width = .8, 
+      fill = bl_col
+    ) +
+    geom_text(
+      aes(label = n),
+      family = "Overpass Mono",
+      color = "grey40",
+      fontface = "bold",
+      hjust = 0,
+      nudge_y = 3,
+      size = 2.7
+    ) +
+    coord_flip() +
+    scale_y_continuous(
+      expand = c(.01, .01),
+      limits = c(0, 265),
+      breaks = seq(0, 250, by = 50)
+    ) +
+    labs(
+      x = NULL, 
+      y = "Number of job offers by industry",
+      caption = "Note: Only industries with 5 or more job offers shown."
+    ) +
+    theme_flip
+
+if(save == T){ 
+  ggsave(here::here("plots", "3_3_industry_counts.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+```
+
+
+
+## 3.4 Rating
+
+* Do more low- or high-rated companies hire? 
+
+-> Counts of unique companies per rating
+
+```{r 3-4-rating-lollipops, fig.width = 12, fig.height = 8}
+df_gd %>% 
+  group_by(ratings) %>% 
+  summarize(n = n_distinct(employer)) %>% 
+  ggplot(aes(ratings, n)) + 
+    geom_segment(
+      aes(
+        xend = ratings,
+        yend = 0
+      ),
+      color = colorspace::darken(bl_col, .2),
+      size = 1.5
+    ) +
+    geom_point(
+      fill = bl_col, 
+      color = colorspace::darken(bl_col, .2),
+      shape = 21,
+      size = 5,
+      stroke = .5
+    ) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, 40)
+    ) +
+    labs(
+      x = "Number of employees", 
+      y = "Number of companies"
+    ) +
+    theme(panel.grid.major.x = element_blank())
+
+if(save == T){ 
+  ggsave(here::here("plots", "3_4_rating_lolli.pdf"), 
+         width = 12, height = 8, device = cairo_pdf) 
+}
+```
+
+```{r 3-4-rating-histogram, fig.width = 12, fig.height = 8}
+df_gd %>% 
+  ungroup() %>% 
+  mutate(rating_floor = floor(ratings - .01)) %>% 
+  group_by(rating_floor) %>% 
+  summarize(n = n_distinct(employer)) %>% 
+  ggplot(aes(rating_floor, n)) + 
+    geom_col(
+      fill = bl_col, 
+      color = colorspace::darken(bl_col, .2)
+    ) +
+    scale_x_continuous(
+      breaks = 0:4,
+      labels = c("< 1", "1–2", "2–3", "3–4", "> 4")
+    ) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, NA)
+    ) +
+    labs(
+      x = "Rating range", 
+      y = "Number of companies"
+    ) +
+    theme(panel.grid.major.x = element_blank())
+
+if(save == T){ 
+  ggsave(here::here("plots", "3_4_rating_histo.pdf"), 
+         width = 12, height = 8, device = cairo_pdf) 
+}
+```
+
+
+
+# 4	Job Responsibilities
+
+```{r data-prep-tasks}
+df_tasks_words <-
+  df_gd %>% 
+  unnest_tokens(word, description, token = "words") %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = T) %>% 
+  filter(
+    nchar(word) > 2,
+    !str_detect(word, "[0-9]+")
+  )
+
+df_tasks_words %>% 
+  filter(
+    word != "seo",
+    n >= 10
+  ) %>% 
+  ggplot(
+    aes(
+      label = word, 
+      size = n, 
+      color = n
+    )
+    ) +
+    geom_text_wordcloud(
+      family = "Montserrat",
+      fontface = "bold",
+      shape = "square",
+      grid_margin = 3
+    ) +
+    rcartocolor::scale_color_carto_c(palette = "ag_Sunset") +
+    scale_size_area(max_size = 20) +
+    theme_minimal()
+
+if(save == T){ 
+  ggsave(here::here("plots", "4_cloud_word.pdf"), 
+         width = 25, height = 15, device = cairo_pdf) 
+}
+
+# df_tasks_sequ <- 
+#   df_gd %>% 
+#   unnest_tokens(word, description, token = "ngrams") %>% 
+#   count(word, sort = T) %>% 
+#   filter(
+#     !word %in% c(
+#       "search engine optimization",
+#       "as well as",
+#       "is a plus",
+#       "up to date",
+#       "the ability to",
+#       "ability to work",
+#       "an equal opportunity",
+#       "be responsible for",
+#       "are looking for",
+#       "working knowledge of",
+#       "you will be",
+#       "years of experience",
+#       "we are looking",
+#       "looking for a",
+#       "in order to",
+#       "be able to",
+#       "in a fast",
+#       "engine optimization seo",
+#       "work closely with",
+#       "is an equal",
+#       "will be responsible",
+#       "to join our"
+#     ),
+#     n >= 10
+#   )
+# 
+# df_tasks_sequ %>% 
+#   filter(
+#     word != "seo",
+#     n >= 10
+#   ) %>% 
+#   ggplot(aes(label = word, size = n, color = n)) +
+#     geom_text_wordcloud(
+#       family = "Montserrat",
+#       fontface = "bold",
+#       shape = "square"
+#     ) +
+#     rcartocolor::scale_color_carto_c(palette = "ag_Sunset") +
+#     scale_size_area(max_size = 20) +
+#     theme_minimal()
+# 
+# if(save == T){ 
+#   ggsave(here::here("plots", "4_cloud_sequ.pdf"), 
+#          width = 25, height = 20, device = cairo_pdf) 
+# }
+```
+
+
+# 5	Job Requirements
+
+## 5.1 Education
+
+```{r data-prep-education}
+df_size_edu <-
+  df_size %>% 
+  mutate(
+    bachelors = if_else(str_detect(description, "B.Ba.|B.Sc.|BBa|BSc|BBA|BSC|Bachelors"), 1, 0),
+    masters = if_else(str_detect(description, "M.Ba.|M.Sc.|MBa|MSc|MBA|MSC|Masters"), 1, 0),
+    doctorate = if_else(str_detect(description, "Ph.D.|PhD|Doctorate"), 1, 0)
+  ) %>% 
+  dplyr::select(size, bachelors, masters, doctorate) %>% 
+  pivot_longer(
+    cols = c(bachelors, masters, doctorate),
+    names_to = "education",
+    values_to = "yes_no"
+  ) %>%
+  group_by(size) %>% 
+  mutate(
+    total = n(),
+    education = str_to_title(education),
+    education = factor(education, levels = c("Doctorate", "Masters", "Bachelors"))
+  )
+```
+
+
+* What type of degrees are most often required (Bachelor vs Master vs Doctorate)? 
+
+```{r}
+df_size_edu %>% 
+  group_by(education) %>% 
+  summarize(n = sum(yes_no)) %>% 
+  ggplot(aes(education, n)) +
+    geom_col(
+      fill = bl_col, 
+      color = after_scale(colorspace::darken(bl_col, .4, space = "HLS")),
+      width = .8,
+      size = 1.2
+    ) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, 42)
+    ) +
+    labs(
+      x = NULL,
+      y = "Number of mentions"
+    ) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      axis.text.x = element_text(size = 18)
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_histo.pdf"), 
+         width = 12, height = 7.5, device = cairo_pdf) 
+}
+```
+
+Bachelors: 38
+Masters: 10
+Doctorate: 1
+
+
+* Do larger companies require a formal education?
+
+```{r 5-1-requirement-education, fig.width = 12, fig.height = 7.5}
+df_size_edu %>% 
+  group_by(size, education) %>% 
+  summarize(rel = sum(yes_no) / unique(total)) %>% 
+  ungroup() %>% 
+  ggplot(
+    aes(
+      size, rel, 
+      fill = education
+    )
+    ) +
+    geom_col(width = .8) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, .031),
+      labels = scales::percent_format()
+    ) +
+    scale_fill_manual(
+      values = cols_degree, 
+      name = "Required degree:"
+    ) +
+    guides(fill = guide_legend(reverse = T)) +
+    theme(
+      legend.text = element_text(size = 14),
+      panel.grid.major.x = element_blank()
+    ) +
+    labs(
+      x = "Number of employees", 
+      y = "Percentage"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_size.pdf"), 
+         width = 12, height = 7.5, device = cairo_pdf) 
+}
+```
+
+
 * Which education level is required by high-revenue companies?
 
-```{r 3-2-revenue-education, fig.width = 12, fig.height = 7.5}
+```{r 5-1-requirement-revenue-education, fig.width = 12, fig.height = 7.5}
 df_rev_edu <-
   df_revenue %>% 
   mutate(
@@ -1223,323 +1911,99 @@ df_rev_edu <-
   summarize(rel = sum(yes_no) / unique(total)) %>% 
   ungroup()
 
-ggplot(df_rev_edu, aes(revenue, rel, 
-                   fill = education)) +
+ggplot(df_rev_edu, 
+  aes(
+    revenue, rel, 
+    fill = education)
+  ) +
   geom_col(width = .8) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
-  scale_y_continuous(expand = c(.0005, .0005),
-                     limits = c(0, .031),
-                     labels = scales::percent_format()) +
-  scale_fill_manual(values = cols_degree, 
-                    name = "Required degree:") +
+  scale_y_continuous(
+    expand = c(.0005, .0005),
+    limits = c(0, .031),
+    labels = scales::percent_format()
+  ) +
+  scale_fill_manual(
+    values = cols_degree, 
+    name = "Required degree:"
+  ) +
   guides(fill = guide_legend(reverse = T)) +
-  theme(legend.text = element_text(size = 14),
-        panel.grid.major.x = element_blank()) +
-  labs(x = "Estimated revenue", 
-       y = "Percentage")
+  theme(
+    legend.text = element_text(size = 14),
+    panel.grid.major.x = element_blank()
+  ) +
+  labs(
+    x = "Estimated revenue", 
+    y = "Percentage"
+  )
 
 if(save == T){ 
-  ggsave(here::here("plots", "3_2_revenue_edu_dodge.pdf"), 
+  ggsave(here::here("plots", "5_1_require_edu_revenue_dodge.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+
+ggplot(df_rev_edu, 
+  aes(
+   revenue, rel, 
+   fill = education
+  )) +
+  geom_col(width = .8) +
+  scale_y_continuous(
+    expand = c(.0005, .0005),
+    limits = c(0, .031),
+    labels = scales::percent_format()
+  ) +
+  scale_fill_manual(
+    values = cols_degree, 
+    name = "Required degree:"
+  ) +
+  guides(fill = guide_legend(reverse = T)) +
+  theme(
+    legend.text = element_text(size = 14),
+    panel.grid.major.x = element_blank(),
+    axis.text.x = element_text(size = 9)
+  ) +
+  labs(
+    x = "Estimated revenue", 
+    y = "Percentage"
+  )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_revenue_small.pdf"), 
          width = 12, height = 6.5, device = cairo_pdf) 
 }
 
 ggplot(df_rev_edu, aes(revenue, rel, 
                    fill = education)) +
   geom_col(width = .8) +
-  scale_y_continuous(expand = c(.0005, .0005),
-                     limits = c(0, .031),
-                     labels = scales::percent_format()) +
-  scale_fill_manual(values = cols, 
-                    name = "Required degree:") +
+  scale_y_continuous(
+    expand = c(.0005, .0005),
+    limits = c(0, .031),
+    labels = scales::percent_format()
+  ) +
+  scale_fill_manual(
+    values = cols_degree, 
+    name = "Required degree:"
+  ) +
   guides(fill = guide_legend(reverse = T)) +
-  theme(legend.text = element_text(size = 14),
-        panel.grid.major.x = element_blank(),
-        axis.text.x = element_text(size = 9)) +
-  labs(x = "Estimated revenue", 
-       y = "Percentage")
+  theme(
+    legend.text = element_text(size = 14),
+    panel.grid.major.x = element_blank(),
+    axis.text.x = element_text(angle = 22, hjust = 1, vjust = 1)
+  ) +
+  labs(
+    x = "Estimated revenue", 
+    y = "Percentage"
+  )
 
 if(save == T){ 
-  ggsave(here::here("plots", "3_2_revenue_edu_small.pdf"), 
-         width = 12, height = 6.5, device = cairo_pdf) 
-}
-
-ggplot(df_rev_edu, aes(revenue, rel, 
-                   fill = education)) +
-  geom_col(width = .8) +
-  scale_y_continuous(expand = c(.0005, .0005),
-                     limits = c(0, .031),
-                     labels = scales::percent_format()) +
-  scale_fill_manual(values = cols_degree, 
-                    name = "Required degree:") +
-  guides(fill = guide_legend(reverse = T)) +
-  theme(legend.text = element_text(size = 14),
-        panel.grid.major.x = element_blank(),
-        axis.text.x = element_text(angle = 22, hjust = 1, vjust = 1)) +
-  labs(x = "Estimated revenue", 
-       y = "Percentage")
-
-if(save == T){ 
-  ggsave(here::here("plots", "3_2_revenue_edu_angle.pdf"), 
-         width = 12, height = 6.5, device = cairo_pdf) 
-}
-```
-
-* What type of skill sets are required by high-revenue companies?
-
--> Can you come up with a list or should I try to extract common words? DOn't know yet how to determine those terms between skills and... yeah, what does mark the end of the skill section?
-
--> So I tokenized the description and removed stop words and numbers as well as manually non-sense/non-skill-related words. There might be more but if we keep it we can have a closer look I would say.
-
-```{r 3-2-revenue-skills, fig.width = 12, fig.height = 7.5}
-df_rev_skills <-   
-  df_revenue %>% 
-  unnest_tokens(word, description, token = "words") %>% 
-  anti_join(stop_words) %>% 
-  filter(
-    !word %in% c("seo","experience", "skills", "skill", "ability", "requirement", "requirements", "link", "required", "provide", "day", "email", "based", "growth", "recommendations", "employment", "paid", "payment", "key", "gender", "equal", "applicants", "application", "disability", "disabilities", "world", "qualifications", "multiple", "page", "pages", "related", "site", "candidate", "insurance", "company", "agency", "office", "position"),
-    !str_detect(word, "[0-9+]")
-  ) %>% 
-  mutate(word = if_else(word == "teams", "team", word))
-
-set.seed(123)
-
-cloud_low <-
-  df_rev_skills %>% 
-  filter(revenue %in% c("< $1M", "$1–5M", "$5–10M", "$10–25M",
-                        "$25–50M", "$50–100M")) %>% 
-  count(word, sort = T) %>% 
-  top_n(75, n) %>% 
-  ggplot(aes(label = word, size = n, color = n)) +
-    geom_text_wordcloud(
-      family = "Montserrat",
-      fontface = "bold",
-      shape = "square"
-    ) +
-    rcartocolor::scale_color_carto_c(palette = "Emrld") +
-    scale_size_area(max_size = 8) +
-    labs(title = "\nCompanies with revenues lower than $100M") +
-    theme_minimal()
-
-cloud_high <-
-  df_rev_skills %>% 
-  filter(revenue %in% c("$100–500M", "$500M–1B",
-                        "$1–2B", "$2–5B", "$5–10B", "> $10B")) %>% 
-  count(word, sort = T) %>% 
-  top_n(75, n) %>% 
-  ggplot(aes(label = word, size = n, color = n)) +
-    geom_text_wordcloud(
-      family = "Montserrat",
-      fontface = "bold",
-      shape = "square"
-    ) +
-    rcartocolor::scale_color_carto_c(palette = "Emrld") +
-    scale_size_area(max_size = 8) +
-    labs(title = "\nCompanies with revenues higher than $100M") +
-    theme_minimal()
-
-## vertical allignment
-(cloud_low / cloud_high) * 
-  theme(plot.title = element_text(family = "Montserrat", size = 14, face = "bold", 
-                                  hjust = .5, margin = margin(b = -30)))
-
-if(save == T){ 
-  ggsave(here::here("plots", "3_2_revenue_words_vertical.pdf"), 
-         width = 11, height = 7, device = cairo_pdf) 
-}
-
-
-## horizontal allignment
-(cloud_low + cloud_high) * 
-  theme(plot.title = element_text(family = "Montserrat", size = 14, face = "bold", 
-                                  hjust = .5, margin = margin(b = -15)))
-
-if(save == T){ 
-  ggsave(here::here("plots", "3_2_revenue_words_horizontal.pdf"), 
-         width = 11, height = 5, device = cairo_pdf) 
-}
-```
-
-
-## 3.3	Sector/Industry
-
-* What type of companies hire SEOs? 
-
-```{r 3-3-sector}
-df_gd %>% 
-  filter(!is.na(sector)) %>% 
-  group_by(sector) %>% 
-  count(sort = T) %>% 
-  ungroup() %>% 
-  mutate(sector = fct_reorder(factor(sector), n)) %>% 
-  ggplot(aes(sector, n)) +
-    geom_col(width = .8, fill = bl_col) +
-    geom_text(aes(label = n),
-              family = "Overpass Mono",
-              color = "grey40",
-              fontface = "bold",
-              hjust = 0,
-              nudge_y = 3,
-              size = 2.7) +
-    coord_flip() +
-    scale_y_continuous(expand = c(.01, .01),
-                       limits = c(0, 345),
-                       breaks = seq(0, 300, by = 50)) +
-    labs(x = NULL, y = "Number of job offers by sector") +
-    theme_flip
-
-if(save == T){ 
-  ggsave(here::here("plots", "3_3_sector_counts.pdf"), 
-         width = 12, height = 6.5, device = cairo_pdf) 
-}
-```
-
-```{r 3-3-industry}
-df_gd %>% 
-  filter(!is.na(industry)) %>% 
-  group_by(industry) %>% 
-  count(sort = T) %>% 
-  filter(n > 4) %>% 
-  ungroup() %>% 
-  mutate(industry = fct_reorder(factor(industry), n)) %>% 
-  ggplot(aes(industry, n)) +
-    geom_col(width = .8, fill = bl_col) +
-    geom_text(aes(label = n),
-              family = "Overpass Mono",
-              color = "grey40",
-              fontface = "bold",
-              hjust = 0,
-              nudge_y = 3,
-              size = 2.7) +
-    coord_flip() +
-    scale_y_continuous(expand = c(.01, .01),
-                       limits = c(0, 265),
-                       breaks = seq(0, 250, by = 50)) +
-    labs(x = NULL, y = "Number of job offers by industry",
-         caption = "Note: Only industries with 5 or more job offers shown.") +
-    theme_flip
-
-if(save == T){ 
-  ggsave(here::here("plots", "3_3_industry_counts.pdf"), 
+  ggsave(here::here("plots", "5_1_require_edu_revenue_angle.pdf"), 
          width = 12, height = 6.5, device = cairo_pdf) 
 }
 ```
 
 
-## 3.4	Company Rating
-
-* Do lower rated companies pay less (salary)? Which companies have the highest ratings? 
-
-```{r 3-4-rating-salary}
-df_gd %>% 
-  dplyr::select(salary, ratings) %>% 
-  filter(
-    !is.na(salary),
-    !is.na(ratings)
-  ) %>% 
-  mutate(
-    salary_low = str_extract(salary, "\\$.*\\-"),
-    salary_high = str_extract(salary, "\\-\\$.*"),
-  ) %>% 
-  mutate_at(vars(matches("salary_")), ~str_extract(., "[0-9]+")) %>% 
-  mutate_at(vars(matches("salary_")), as.numeric) %>% 
-  mutate(salary_avg = salary_low + salary_high / 2) %>% 
-  ggplot(aes(ratings, salary_avg)) + 
-    geom_smooth(color = colorspace::darken(bl_col, .2), 
-                se = F) +
-    geom_point(shape = 1,
-               size = 4, 
-               color = bl_col,
-               stroke = .2) +
-    geom_point(size = 4, 
-               alpha = .1, 
-               color = bl_col) +
-    scale_y_continuous(breaks = seq(50, 300, by = 50),
-                       limits = c(50, 300)) +
-    labs(x = "Company rating", 
-         y = "Average salary (calculated from range)")
-
-if(save == T){ 
-  ggsave(here::here("plots", "3_4_rating_salary.pdf"), 
-         width = 12, height = 7.5, device = cairo_pdf) 
-}
-```
-
-* (Which companies have the highest ratings?)
-
-
-# 4	Job Responsibilities
-
-```{r data-prep-tasks}
-df_tasks_words <-
-  df_gd %>% 
-  unnest_tokens(word, description, token = "words") %>% 
-  anti_join(stop_words) %>% 
-  count(word, sort = T)
-
-df_tasks_words %>% 
-  filter(
-    word != "seo",
-    n >= 10
-  ) %>% 
-  ggplot(aes(label = word, size = n, color = n)) +
-    geom_text_wordcloud(
-      family = "Montserrat",
-      fontface = "bold",
-      shape = "square"
-    ) +
-    rcartocolor::scale_color_carto_c(palette = "ag_Sunset") +
-    scale_size_area(max_size = 20) +
-    theme_minimal()
-
-if(save == T){ 
-  ggsave(here::here("plots", "4_cloud_word.pdf"), 
-         width = 25, height = 20, device = cairo_pdf) 
-}
-
-df_tasks_sequ <- 
-  df_gd %>% 
-  unnest_tokens(word, description, token = "ngrams") %>% 
-  anti_join(stop_words) %>% 
-  count(sequ, sort = T) 
-
-df_tasks_sequ %>% 
-  filter(
-    word != "seo",
-    n >= 10
-  ) %>% 
-  ggplot(aes(label = sequ, size = n, color = n)) +
-    geom_text_wordcloud(
-      family = "Montserrat",
-      fontface = "bold",
-      shape = "square"
-    ) +
-    rcartocolor::scale_color_carto_c(palette = "ag_Sunset") +
-    scale_size_area(max_size = 20) +
-    theme_minimal()
-
-if(save == T){ 
-  ggsave(here::here("plots", "4_cloud_sequ.pdf"), 
-         width = 25, height = 20, device = cairo_pdf) 
-}
-```
-
-
-
-## 4.1	Job related tasks
-
-* What job tasks are most often mentioned? 
-
-
-## 4.2	Deep dive into job tasks (PPC, content management, technical, etc.)
-
-* What technical SEO tasks are most often required?
-
---> How should this differ to 1.1 where we looked into technical/nontechnical positions? Since I already showed the most common terms here i think it is (almost?) the same plot.
-
-
-# 5	Job Requirements
-
-## 5.1	Programming Languages
+## 5.2	Programming Languages
 
 * What programming languages are most often required? 
 
@@ -1550,41 +2014,41 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 df_prog <-
   df_gd %>% 
   mutate(
-    JavaScript = str_count(description, " JavaScript "),
-    HTML = str_count(description, " HTML "),
-    CSS = str_count(description, " CSS "),
-    SQL = str_count(description, " SQL "),
-    Python = str_count(description, " Python "),
-    Java = str_count(description, " Java "),
-    Bash = str_count(description, " Bash "),
-    Shell = str_count(description, " Shell "),
-    Powershell = str_count(description, " Powershell "),
-    `C#` = str_count(description, " C# "),
-    PHP = str_count(description, " PHP "),
-    `C++` = str_count(description, " C++ | CPP"),
-    TypeScript = str_count(description, " TypeScript "),
-    C = str_count(description, " C "),
-    Ruby = str_count(description, " Ruby "),
-    Go = str_count(description, " Go "),
-    Assembly = str_count(description, " Assembly "),
-    Swift = str_count(description, " Swift "),
-    Kotlin = str_count(description, " Kotlin "),
-    R = str_count(description, " R "),
-    VBA = str_count(description, " VBA "),
-    ObjectiveC = str_count(description, " Objective-C "),
-    Scala = str_count(description, " Scala "),
-    Rust = str_count(description, " Rust "),
-    Dart = str_count(description, " Dart "),
-    Elixir = str_count(description, " Elixir "),
-    Clojure = str_count(description, " Clojure "),
-    WebAssembly = str_count(description, " WebAssembly "),
-    Julia = str_count(description, " Julia ")
+    JavaScript = str_count(description, "\\bJavaScript\\b"),
+    HTML = str_count(description, " HTML\\b"),
+    CSS = str_count(description, "\\bCSS\\b"),
+    SQL = str_count(description, "\\bSQL\\b"),
+    Python = str_count(description, "\\bPython\\b"),
+    Java = str_count(description, "\\bJava\\b"),
+    Bash = str_count(description, "\\bBash\\b"),
+    Shell = str_count(description, "\\bShell\\b"),
+    Powershell = str_count(description, "\\bPowershell\\b"),
+    `C#` = str_count(description, "\\bC#\\b"),
+    PHP = str_count(description, "\\bPHP\\b"),
+    `C++` = str_count(description, "\\bC\\b\\+\\+| \\bCPP\\b"),
+    TypeScript = str_count(description, "\\bTypeScript\\b"),
+    C = str_count(description, "\\bC\\b"),
+    Ruby = str_count(description, "\\bRuby\\b"),
+    Go = str_count(description, "\\bGo\\b"),
+    Assembly = str_count(description, "\\bAssembly\\b"),
+    Swift = str_count(description, "\\bSwift\\b"),
+    Kotlin = str_count(description, "\\bKotlin\\b"),
+    R = str_count(description, "\\bR\\b"),
+    VBA = str_count(description, "\\bVBA\\b"),
+    ObjectiveC = str_count(description, "\\bObjective-C\\b|\\bObjective\\sC\\b"),
+    Scala = str_count(description, "\\bScala\\b"),
+    Rust = str_count(description, "\\bRust\\b"),
+    Dart = str_count(description, "\\bDart\\b"),
+    Elixir = str_count(description, "\\bElixir\\b"),
+    Clojure = str_count(description, "\\bClojure\\b"),
+    WebAssembly = str_count(description, "\\bWebAssembly\\b"),
+    Julia = str_count(description, "\\bJulia\\b")
   ) %>% 
   dplyr::select(JavaScript:Julia)
 ```
 
 
-```{r 5-1-programming-languages, fig.width = 12, fig.height = 7}
+```{r 5-2-requirement-programming-languages, fig.width = 12, fig.height = 7}
 df_prog %>% 
   pivot_longer(
     cols = JavaScript:Julia,
@@ -1597,32 +2061,45 @@ df_prog %>%
   ungroup() %>% 
   mutate(language = fct_reorder(language, count)) %>% 
   ggplot(aes(language, count)) +
-    geom_segment(aes(xend = language, yend = 0),
-                 color = bl_col,
-                 size = 3) + 
-    geom_point(shape = 21,
-               color = bl_col,
-               fill = "white",
-               size = 10,
-               stroke = 1) +
-    geom_text(aes(label = count),
-              family = "Overpass Mono",
-              color = bl_col,
-              fontface = "bold",
-              size = 3.3,
-              hjust = .5,
-              nudge_y = 0) +
+    geom_segment(
+      aes(
+        xend = language, 
+        yend = 0
+      ),
+      color = bl_col,
+      size = 3
+    ) + 
+    geom_point(
+      shape = 21,
+      color = bl_col,
+      fill = "white",
+      size = 10,
+      stroke = 1
+    ) +
+    geom_text(
+      aes(label = count),
+      family = "Overpass Mono",
+      color = bl_col,
+      fontface = "bold",
+      size = 3.3,
+      hjust = .5,
+      nudge_y = 0
+    ) +
     coord_flip() +
-    scale_y_continuous(expand = c(.02, .02),
-                       limits = c(0, 125),
-                       breaks = seq(0, 120, by = 20)) +
+    scale_y_continuous(
+      expand = c(.02, .02),
+      limits = c(0, 340),
+      breaks = seq(0, 300, by = 50)
+    ) +
     theme_flip +
     theme(axis.text.y = element_text(size = 14)) +
-    labs(x = NULL,
-         y = "Number of job descriptions mentioning each programming language")
+    labs(
+      x = NULL,
+      y = "Number of job descriptions mentioning each programming language"
+    )
 
 if(save == T){ 
-  ggsave(here::here("plots", "5_1_require_prog.pdf"), 
+  ggsave(here::here("plots", "5_2_require_prog.pdf"), 
          width = 12, height = 7, device = cairo_pdf) 
 }
 ```
@@ -1630,7 +2107,7 @@ if(save == T){
 
 * What languages are most often required in combination (e.g. Html, CSS)
 
-```{r 5-1-programming-languages, fig.width = 12, fig.height = 7.5}
+```{r 5-2-requirement-programming-languages-combination, fig.width = 12, fig.height = 7.5}
 df_prog %>% 
   mutate(id = row_number()) %>% 
   pivot_longer(
@@ -1652,87 +2129,210 @@ df_prog %>%
   ) %>% 
   ungroup() %>% 
   dplyr::select(-id) %>% 
-  mutate_world(funs(ifelse(. == 1, deparse(substitute(.)), NA))) %>% 
+  mutate_all(funs(ifelse(. == 1, deparse(substitute(.)), NA))) %>% 
   unite("combination", sep = " + ", remove = T, na.rm = T) %>% 
   group_by(combination) %>% 
   count() %>% 
   ungroup() %>% 
-  filter(combination != "") %>% 
+  filter(
+    combination != "",
+    str_detect(combination, "\\+"),
+    n > 2
+  ) %>% 
   mutate(combination = fct_reorder(combination, n)) %>% 
   ggplot(aes(combination, n)) +
-    geom_segment(aes(xend = combination, yend = 0),
-                 color = bl_col,
-                 size = 2) + 
-    geom_point(shape = 21,
-               color = bl_col,
-               fill = "white",
-               size = 7,
-               stroke = 1) +
-    geom_text(aes(label = n),
-              family = "Overpass Mono",
-              color = bl_col,
-              fontface = "bold",
-              size = 3.5,
-              hjust = .5,
-              nudge_y = 0) +
+    geom_segment(
+      aes(
+        xend = combination, 
+        yend = 0
+      ),
+      color = bl_col,
+      size = 2
+    ) + 
+    geom_point(
+      shape = 21,
+      color = bl_col,
+      fill = "white",
+      size = 8,
+      stroke = 1
+    ) +
+    geom_text(
+      aes(label = n),
+      family = "Overpass Mono",
+      color = bl_col,
+      fontface = "bold",
+      size = 3.5,
+      hjust = .5,
+      nudge_y = 0
+    ) +
     coord_flip() +
-    scale_y_continuous(expand = c(.02, .02),
-                       breaks = c(0, 5, 10)) +
+    scale_y_continuous(
+      expand = c(.02, .02),
+      breaks = seq(0, 80, by = 10),
+      limits = c(0, 90)
+    ) +
     theme_flip +
-    labs(x = NULL,
-         y = "Mentioned combinations of programming\nlanguages in job descriptions")
+    labs(
+      x = NULL,
+      y = "Mentioned combinations of programming\nlanguages in job descriptions",
+      caption = 'Note: Only combinations with a frequency of 3 or more shown.'
+    )
 
 if(save == T){ 
-  ggsave(here::here("plots", "5_1_require_prog_comb.pdf"), 
-         width = 12, height = 7.5, device = cairo_pdf) 
+  ggsave(here::here("plots", "5_2_require_prog_comb.pdf"), 
+         width = 12, height = 5, device = cairo_pdf) 
 }
 ```
 
 
 
-## 5.2	Knowledge of Popular Tools
+## 5.3	Knowledge of Popular Tools
 
-* What tools are most often required?
+* What tools are most often required? TODO
 
---> What's the difference to 5.1, including i.e. Power BI? Do you provide a list of common tools?
+CED: List still needed (incl. tools like Power BI, Tableau etc)
 
 
-## 5.3	Years of Experience
+
+## 5.4	Years of Experience
 
 * What type of SEO jobs require +5 years experience? 
 
 --> Simply filter by "5+ years"? Or search for years and extract number? How to evaluate if they use different ways to say the same?
 
 
-## 5.4	Degree Requirements
-
-* What type of degrees are most often required (BS vs MS vs None)? 
-
---> Did this already for company info - any other rleationship of interest here? Or a simple bar plot showing the three educaiton levels summarized and not for each company size/salary?
-
 
 # 6	Salaries
+
+```{r data-prep-salary}
+df_salary <- 
+  df_gd %>% 
+  dplyr::select(salary, employer, ratings) %>% 
+  filter(!is.na(salary)) %>% 
+  mutate(
+    salary_low = str_extract(salary, "\\$.*\\-"),
+    salary_high = str_extract(salary, "\\-\\$.*"),
+  ) %>% 
+  mutate_at(vars(matches("salary_")), ~str_extract(., "[0-9]+")) %>% 
+  mutate_at(vars(matches("salary_")), as.numeric) %>% 
+  mutate(
+    salary_avg = salary_low + salary_high / 2,
+    salary_class = salary_avg %/% 10 * 10
+  )
+```
+
 
 ## 6.1	Salary Ranges
 
 * What are the typcial salary ranges for SEO jobs?
 
+```{r 6-1-salary-histogram, fig.width = 12, fig.height = 8}
+df_salary %>% 
+  ggplot(aes(x = salary_avg)) +
+    geom_histogram(
+      fill = bl_col, 
+      color = colorspace::darken(bl_col, .4),
+      bins = 50
+    ) +
+    geom_vline(
+      aes(xintercept = mean(salary_avg)), 
+      linetype = "dashed",
+      color = "grey35",
+      size = 1
+    ) +
+    annotate(
+      "text",
+      x = 100,
+      y = 47,
+      label = glue::glue("Mean: ${round(mean(df_salary$salary_avg), 0)}K"),
+      family = "Montserrat",
+      color = "grey35",
+      fontface = "bold",
+      size = 4.5
+    ) +
+    scale_x_continuous(
+      limits = c(1, 300),
+      breaks = c(1, seq(50, 300, by = 50)),
+      labels = glue::glue("${c(1, seq(50, 300, by = 50))}K")
+    ) +
+    scale_y_continuous(
+      expand = c(0, 0)
+    ) +
+    scale_fill_manual(
+      values = c("grey60", bl_col),
+      guide = F
+    ) +
+    labs(
+      x = "Average salary", 
+      y = "Number of job offers"
+    ) +
+    theme(panel.grid.major.x = element_blank())
+
+if(save == T){ 
+  ggsave(here::here("plots", "6_1_salary_histo.pdf"), 
+         width = 12, height = 8, device = cairo_pdf) 
+}
+```
 
 
 ## 6.2	Salaries per Location
 
-* Where do companies pay the most/least?
+* Where do companies pay the most/least? TODO
+
+-> Simple bar plot of extreme cities/states
 
 
-## 6.3	Salaries for different positions
+## 6.3	Salaries for Different Positions
 
-* What are the highest/lowest paying SEO positions?
+* (What are the highest/lowest paying SEO positions?)
 
 
-## 6.4	Salaries per job requirements
+## 6.4	Salaries per Job Requirement
 
-* Do positions with programming languages pay significantly more?
+* Do positions with programming languages pay significantly more? TODO
 
+
+## 6.5	Salaries per Company Rating
+
+* Do lower rated companies pay less (salary)?
+
+```{r 6-5-salary-rating}
+df_salary %>% 
+  filter(!is.na(ratings)) %>% 
+  ggplot(aes(ratings, salary_avg)) + 
+    geom_smooth(
+      #method = "lm",
+      color = colorspace::darken(bl_col, .2), 
+      se = F
+    ) +
+    geom_point(
+      shape = 1,
+      size = 4, 
+      color = bl_col,
+      stroke = .2
+    ) +
+    geom_point(
+      size = 4, 
+      alpha = .1, 
+      color = bl_col
+    ) +
+    scale_y_continuous(
+      breaks = seq(50, 300, by = 50),
+      labels = glue::glue("${seq(50, 300, by = 50)}K"),
+      limits = c(50, 300)
+    ) +
+    labs(
+      x = "Company rating", 
+      y = "Average salary (calculated from range)"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "6_5_rating_salary.pdf"), 
+         width = 12, height = 7.5, device = cairo_pdf) 
+}
+```
+
+* (Which companies have the highest ratings?)
 
 
 
@@ -1745,7 +2345,7 @@ pdfs <- list.files(here::here("plots"), pattern = "*.pdf")
 setwd(here::here("plots", "png"))
 
 for(pdf in pdfs) {
-  pdf_convert(pdf = here::here("plots", pdf), 
+  pdf_convert(pdf = here::here("plots", "6_1_salary_histo.pdf"), 
               format = "png", dpi = 750)
 }
 ```

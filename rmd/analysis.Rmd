@@ -2025,7 +2025,7 @@ df_prog <-
     Powershell = str_count(description, "\\bPowershell\\b"),
     `C#` = str_count(description, "\\bC#\\b"),
     PHP = str_count(description, "\\bPHP\\b"),
-    `C++` = str_count(description, "\\bC\\b\\+\\+| \\bCPP\\b"),
+    `C++` = str_count(description, "\\bC\\b\\+\\+"),
     TypeScript = str_count(description, "\\bTypeScript\\b"),
     C = str_count(description, "\\bC\\b"),
     Ruby = str_count(description, "\\bRuby\\b"),

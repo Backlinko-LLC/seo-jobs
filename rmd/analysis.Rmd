@@ -52,12 +52,15 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.showtext = TRUE, dpi
 knitr::knit_hooks$set(inline = function(x) {
   prettyNum(x, big.mark = ",", small.mark = ",", scientific = F)
 })
+
+Sys.setlocale("LC_TIME", "C")
 ```
 
 ```{r prep}
 ## packages
 library(tidyverse)
 library(tidytext)
+library(colorspace)
 library(sf)
 library(maps)
 library(albersusa)
@@ -186,7 +189,7 @@ int_cols <- c("#bce2d5", "#79d8b6", bl_col, "#009f66", "#006c45", "#003925")
 int_perc <- c("100%", "95%", "75%", "50%", "25%", "5%")
 
 ## colors for degrees (Bachelors, Massters, Doctorate in reverse order)
-cols_degree <- c("#e64500", "#FFCC00", colorspace::darken(bl_col, .1))
+cols_degree <- c("#e64500", "#FFCC00", darken(bl_col, .1))
 
 ## gradient colors for position
 colfunc <- colorRampPalette(c(bl_col, "#bce2d5"))
@@ -532,9 +535,9 @@ df_stack %>%
     geom_col(
       aes(
         fill = type,
-        fill = after_scale(colorspace::darken(fill, .05)), 
+        fill = after_scale(darken(fill, .05)), 
         color = type,
-        color = after_scale(colorspace::darken(color, .15)), 
+        color = after_scale(darken(color, .15)), 
         alpha = alpha
       ), 
       size = .1
@@ -543,8 +546,8 @@ df_stack %>%
       aes(
         fill = type,
         color = type,
-        fill = after_scale(colorspace::darken(fill, .3)),
-        color = after_scale(colorspace::darken(color, .3))
+        fill = after_scale(darken(fill, .3)),
+        color = after_scale(darken(color, .3))
       ),
       width = .4,
       size = .1
@@ -597,7 +600,7 @@ df_stack %>%
         y = pos, 
         label = word, 
         color = type,
-        color = after_scale(colorspace::darken(color, .15)),
+        color = after_scale(darken(color, .15)),
         size = n
       ),
       family = "Montserrat", 
@@ -787,7 +790,7 @@ sf_map_us_long <-
 #   arrange(-n) %>% 
 #   ggplot() +
 #     geom_sf(data = world, 
-#             #color = colorspace::darken(bl_col, .05), 
+#             #color = darken(bl_col, .05), 
 #             color = "grey60",
 #             alpha = .3,
 #             lwd = 5) +
@@ -800,7 +803,7 @@ sf_map_us_long <-
 #             show.legend = "point") +
 #     geom_sf(aes(size = n), 
 #             shape = 21, 
-#             color = colorspace::darken(bl_col, .2),
+#             color = darken(bl_col, .2),
 #             fill = NA,
 #             stroke = .4,
 #             show.legend = "point") +
@@ -815,7 +818,7 @@ sf_map_us_long <-
 #                                 title.hjust = .5, 
 #                                 nrow = 1,
 #                                 label.position = "bottom",
-#                                 override.aes = list(shape = 21, color = bl_col, fill = colorspace::lighten(bl_col, .9), stroke = 1))) +
+#                                 override.aes = list(shape = 21, color = bl_col, fill = lighten(bl_col, .9), stroke = 1))) +
 #     theme_map +
 #     theme(legend.position = c(.2, .1),
 #           legend.title = element_text(margin = margin(0, 0, -5, 0)),
@@ -836,7 +839,7 @@ sf_map_us %>%
   ggplot() +
     # geom_sf(
     #   data = world, 
-    #   #color = colorspace::darken(bl_col, .05), 
+    #   #color = darken(bl_col, .05), 
     #   color = "grey60",
     #   alpha = .2,
     #   lwd = 3
@@ -844,7 +847,7 @@ sf_map_us %>%
     geom_sf(
       data = sf_world, 
       color = "grey60",
-      fill = colorspace::lighten("#374b45", .15),
+      fill = lighten("#374b45", .15),
       lwd = .4
     ) +
     geom_sf(
@@ -861,7 +864,7 @@ sf_map_us %>%
     geom_sf(
       aes(size = n),
       shape = 21,
-      color = colorspace::darken(bl_col, .2),
+      color = darken(bl_col, .2),
       fill = NA,
       stroke = .1,
       show.legend = "point"
@@ -893,7 +896,7 @@ sf_map_us %>%
         override.aes = list(
           shape = 21, 
           color = bl_col, 
-          fill = colorspace::lighten(bl_col, .9), 
+          fill = lighten(bl_col, .9), 
           stroke = 1
         )
       )
@@ -924,7 +927,7 @@ sf_map_us %>%
   ggplot() +
     geom_sf(
       data = sf_states, 
-      #color = colorspace::darken(bl_col, .05), 
+      #color = darken(bl_col, .05), 
       color = "grey60",
       alpha = .3,
       lwd = 5
@@ -932,7 +935,7 @@ sf_map_us %>%
     geom_sf(
       data = sf_states, 
       color = "#cedbd7",#"white", 
-      fill = colorspace::darken("#cedbd7", .15, space = "HLS"),
+      fill = darken("#cedbd7", .15, space = "HLS"),
       lwd = .5
     ) +
     geom_sf(
@@ -943,7 +946,7 @@ sf_map_us %>%
     geom_sf(
       aes(size = n), 
       shape = 21, 
-      color = colorspace::darken(bl_col, .2),
+      color = darken(bl_col, .2),
       fill = NA,
       stroke = .4,
       show.legend = "point"
@@ -968,7 +971,7 @@ sf_map_us %>%
         override.aes = list(
           shape = 21, 
           color = bl_col, 
-          fill = colorspace::lighten(bl_col, .9), 
+          fill = lighten(bl_col, .9), 
           stroke = 1
         )
       )
@@ -986,6 +989,66 @@ if(save == T){
 }
 ```
 
+
+### Bar plot of most common cities
+
+```{r}
+df_cities <-
+  df_loc_en %>% 
+  left_join(df_geo_en, by = c("location" = "query")) %>% 
+  filter(
+    !is.na(location.lng),
+    !str_detect(location, "United Kingdom"),
+    !str_detect(location, "South Africa"),
+    !str_detect(location, "Australia"),
+    !str_detect(location, "Ireland"),
+    !str_detect(location, "Canada")
+  ) %>% 
+  filter(n >= 10) %>%
+  mutate(
+    state = str_extract(location, "[^, ]*$"),
+    state_lump = case_when(
+      state == "CA" ~ "California",
+      state == "NY" ~ "New York",
+      TRUE ~ "other"
+    )
+  ) 
+
+df_cities %>% 
+  ggplot(aes(n, fct_reorder(location, n))) +
+    geom_col(
+       aes(fill = state_lump),
+       orientation = "y",
+       width = .85
+    ) +
+    geom_text(
+      data = df_cities %>% filter(n > 35),
+      aes(label = state_lump),
+      family = "Montserrat",
+      fontface = "bold",
+      color = "white",
+      hjust = 1,
+      nudge_x = -3
+    ) +
+    scale_x_continuous(
+      breaks = seq(0, 150, by = 25),
+      expand = c(.001, .001)
+    ) +
+    scale_fill_manual(
+      values = c(darken(bl_col, .25), bl_col, "grey60"),
+      guide = F
+    ) +
+    labs(
+      x = "Number of job offers",
+      y = NULL,
+      caption = 'Note: Only cities with 10 or more job offers shown.'
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "2_1_bars_cities.pdf"), 
+         width = 12, height = 8, device = cairo_pdf) 
+}
+```
 
 
 ## 2.2 Hot Spots (US States)
@@ -1184,7 +1247,7 @@ df_hex %>%
         group = group, 
         fill = n
       ), 
-      color = colorspace::darken(bl_col, .1),
+      color = darken(bl_col, .1),
       #color = "grey60",
       lwd = .8
     ) +
@@ -1199,7 +1262,7 @@ df_hex %>%
       family = "Montserrat",
       fontface = "bold",
       size = 7.5,
-      color = colorspace::darken(bl_col, .6),
+      color = darken(bl_col, .6),
       vjust = .2
     ) +
     geom_text(
@@ -1218,7 +1281,7 @@ df_hex %>%
     coord_map() + 
     scale_fill_gradient(
       low = "grey95", 
-      high = colorspace::darken(bl_col, .1), 
+      high = darken(bl_col, .1), 
       name = "Number of job offers",
       limits = c(0, 200),
       breaks = seq(0, 200, by = 25)
@@ -1357,7 +1420,7 @@ df_size %>%
     geom_col(
       aes(
         fill = col, 
-        color = after_scale(colorspace::darken(fill, .4))
+        color = after_scale(darken(fill, .4))
       ),
       width = .85,
       size = 1
@@ -1425,7 +1488,7 @@ df_revenue %>%
   ggplot(aes(revenue, n)) +
     geom_col(
       fill = bl_col, 
-      color = after_scale(colorspace::darken(bl_col, .4, space = "HLS")),
+      color = after_scale(darken(bl_col, .4, space = "HLS")),
       width = .8,
       size = 1
     ) +
@@ -1628,12 +1691,12 @@ df_gd %>%
         xend = ratings,
         yend = 0
       ),
-      color = colorspace::darken(bl_col, .2),
+      color = darken(bl_col, .2),
       size = 1.5
     ) +
     geom_point(
       fill = bl_col, 
-      color = colorspace::darken(bl_col, .2),
+      color = darken(bl_col, .2),
       shape = 21,
       size = 5,
       stroke = .5
@@ -1663,7 +1726,7 @@ df_gd %>%
   ggplot(aes(rating_floor, n)) + 
     geom_col(
       fill = bl_col, 
-      color = colorspace::darken(bl_col, .2)
+      color = darken(bl_col, .2)
     ) +
     scale_x_continuous(
       breaks = 0:4,
@@ -1817,7 +1880,7 @@ df_size_edu %>%
   ggplot(aes(education, n)) +
     geom_col(
       fill = bl_col, 
-      color = after_scale(colorspace::darken(bl_col, .4, space = "HLS")),
+      color = after_scale(darken(bl_col, .4, space = "HLS")),
       width = .8,
       size = 1.2
     ) +
@@ -2014,42 +2077,43 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 df_prog <-
   df_gd %>% 
   mutate(
-    JavaScript = str_count(description, "\\bJavaScript\\b"),
-    HTML = str_count(description, " HTML\\b"),
-    CSS = str_count(description, "\\bCSS\\b"),
-    SQL = str_count(description, "\\bSQL\\b"),
-    Python = str_count(description, "\\bPython\\b"),
-    Java = str_count(description, "\\bJava\\b"),
-    Bash = str_count(description, "\\bBash\\b"),
-    Shell = str_count(description, "\\bShell\\b"),
-    Powershell = str_count(description, "\\bPowershell\\b"),
-    `C#` = str_count(description, "\\bC#\\b"),
-    PHP = str_count(description, "\\bPHP\\b"),
-    `C++` = str_count(description, "\\bC\\b\\+\\+"),
-    TypeScript = str_count(description, "\\bTypeScript\\b"),
-    C = str_count(description, "\\bC\\b"),
-    Ruby = str_count(description, "\\bRuby\\b"),
-    Go = str_count(description, "\\bGo\\b"),
-    Assembly = str_count(description, "\\bAssembly\\b"),
-    Swift = str_count(description, "\\bSwift\\b"),
-    Kotlin = str_count(description, "\\bKotlin\\b"),
-    R = str_count(description, "\\bR\\b"),
-    VBA = str_count(description, "\\bVBA\\b"),
-    ObjectiveC = str_count(description, "\\bObjective-C\\b|\\bObjective\\sC\\b"),
-    Scala = str_count(description, "\\bScala\\b"),
-    Rust = str_count(description, "\\bRust\\b"),
-    Dart = str_count(description, "\\bDart\\b"),
-    Elixir = str_count(description, "\\bElixir\\b"),
-    Clojure = str_count(description, "\\bClojure\\b"),
-    WebAssembly = str_count(description, "\\bWebAssembly\\b"),
-    Julia = str_count(description, "\\bJulia\\b")
-  ) %>% 
-  dplyr::select(JavaScript:Julia)
+    description = str_to_lower(description),
+    JavaScript = str_count(description, "\\bjavascript\\b"),
+    HTML = str_count(description, " html\\b"),
+    CSS = str_count(description, "\\bcss\\b"),
+    SQL = str_count(description, "\\bsql\\b"),
+    Python = str_count(description, "\\bpython\\b"),
+    Java = str_count(description, "\\bjava\\b"),
+    Bash = str_count(description, "\\bbash\\b"),
+    Shell = str_count(description, "\\bshell\\b"),
+    Powershell = str_count(description, "\\bpowershell\\b"),
+    `C#` = str_count(description, "\\bc#\\b"),
+    PHP = str_count(description, "\\bphp\\b"),
+    `C++` = str_count(description, "\\bc\\b\\+\\+"),
+    TypeScript = str_count(description, "\\btypescript\\b"),
+    C = str_count(description, "\\bc\\b"),
+    Ruby = str_count(description, "\\bruby\\b"),
+    Go = str_count(description, "\\bgo\\b"),
+    Assembly = str_count(description, "\\bassembly\\b"),
+    Swift = str_count(description, "\\bswift\\b"),
+    Kotlin = str_count(description, "\\bkotlin\\b"),
+    R = str_count(description, "\\br\\b"),
+    VBA = str_count(description, "\\bvba\\b"),
+    ObjectiveC = str_count(description, "\\bobjective-c\\b|\\bobjective\\sc\\b"),
+    Scala = str_count(description, "\\bscala\\b"),
+    Rust = str_count(description, "\\brust\\b"),
+    Dart = str_count(description, "\\bdart\\b"),
+    Elixir = str_count(description, "\\belixir\\b"),
+    Clojure = str_count(description, "\\bCcojure\\b"),
+    WebAssembly = str_count(description, "\\bwebassembly\\b"),
+    Julia = str_count(description, "\\bjulia\\b")
+  )
 ```
 
 
 ```{r 5-2-requirement-programming-languages, fig.width = 12, fig.height = 7}
 df_prog %>% 
+  dplyr::select(JavaScript:Julia) %>% 
   pivot_longer(
     cols = JavaScript:Julia,
     names_to = "language",
@@ -2109,6 +2173,7 @@ if(save == T){
 
 ```{r 5-2-requirement-programming-languages-combination, fig.width = 12, fig.height = 7.5}
 df_prog %>% 
+  dplyr::select(JavaScript:Julia) %>% 
   mutate(id = row_number()) %>% 
   pivot_longer(
     cols = JavaScript:Julia,
@@ -2168,8 +2233,8 @@ df_prog %>%
     coord_flip() +
     scale_y_continuous(
       expand = c(.02, .02),
-      breaks = seq(0, 80, by = 10),
-      limits = c(0, 90)
+      breaks = seq(0, 70, by = 10),
+      limits = c(0, 72)
     ) +
     theme_flip +
     labs(
@@ -2180,7 +2245,7 @@ df_prog %>%
 
 if(save == T){ 
   ggsave(here::here("plots", "5_2_require_prog_comb.pdf"), 
-         width = 12, height = 5, device = cairo_pdf) 
+         width = 12, height = 6, device = cairo_pdf) 
 }
 ```
 
@@ -2188,10 +2253,202 @@ if(save == T){
 
 ## 5.3	Knowledge of Popular Tools
 
-* What tools are most often required? TODO
+* What tools are most often required?
 
-CED: List still needed (incl. tools like Power BI, Tableau etc)
+```{r list-tools}
+tools <- str_to_lower(c(
+  "Bing Webmaster Tools",
+  "Botify",
+  "Bright Local",
+  "Browseo",
+  "Clusteric",
+  "ContentKing App",
+  "DareBoost",
+  "DeepCrawl",
+  "EasyRedir",
+  "Forecheck",
+  "Google Analytics",
+  "Google Mobile-Friendly Test",
+  "Google PageSpeed Insights",
+  "Google Search Console",
+  "Google XML Sitemaps",
+  "GTmetrix",
+  "HeadMasterSEO",
+  "LinkPatrol",
+  "Lipperhey",
+  "OnCrawl",
+  "Panguin Tool",
+  "Raven Tools",
+  "Screaming Frog",
+  "Seobility",
+  "Seomator",
+  "SERPmetrics",
+  "Siteliner",
+  "Topvisor",
+  "Varvy SEO Tool",
+  "Whitespark",
+  "Woorank",
+  "Yoast",
+  "Zadroweb",
+  "Answer The Public",
+  "ClearScope",
+  "Exploding Topics",
+  "FAQfox",
+  "Google Keyword Planner",
+  "Google Location ",
+  "Google Trends",
+  "Gookey",
+  "GrepWords",
+  "HitTail",
+  "Imforsmb",
+  "iSpionage",
+  "Jaaxy",
+  "Keyword Eye",
+  "Keyword Revealer",
+  "Keyword Snatcher",
+  "Keyworddit",
+  "KeywordIn",
+  "Keywords Everywhere",
+  "KeywordSpy",
+  "KeywordTool.io",
+  "Kombinator",
+  "kwfinder",
+  "Long Tail Pro",
+  "Power Suggest Pro",
+  "QuestionDB",
+  "SanityCheck",
+  "SECockpit",
+  "Seed Keywords",
+  "SEMrush",
+  "SERPStat",
+  "SimilarWeb",
+  "Soovle",
+  "SpyFu",
+  "StoryBase",
+  "TermExplorer",
+  "TwinWord",
+  "UberSuggest",
+  "Webtexttool",
+  "Wondersearch",
+  "Wordstream's Free Keyword Tools",
+  "WordTracker",
+  "Wordtracker Scout",
+  "Advanced Web Ranking",
+  "Agency Analytics",
+  "AMZ Tracker",
+  "Authority Labs",
+  "GeoRanker",
+  "Microsite Masters",
+  "NightWatch",
+  "Pro Rank Tracker",
+  "Rank Ranger",
+  "Rival IQ",
+  "SE Ranking",
+  "Search Latte",
+  "Serpfox",
+  "SERPs.com",
+  "SERPWoo",
+  "Sistrix",
+  "WebCEO",
+  "WordTail",
+  "Animalz Revive",
+  "BuzzSumo",
+  "Can I Rank",
+  "ClickFlow",
+  "Google SERP Preview Tool",
+  "Keys4Up",
+  "LSIGraph",
+  "MarketMuse",
+  "MetaTags.io",
+  "nTopic",
+  "Positionly",
+  "Ryte",
+  "SEOptimer",
+  "TrendSpottr",
+  "Upcity",
+  "WordLift",
+  "Ahrefs",
+  "cognitiveSEO",
+  "Kerboo",
+  "Majestic ",
+  "Moz",
+  "MozBar",
+  "SEO PowerSuite",
+  "SEOGadget ",
+  "ShareMetric",
+  "URL Profiler",
+  "WebMeUp Backlink Tool",
+  "Morningfame",
+  "Social Blade",
+  "TubeBuddy",
+  "VidIQ",
+  "YTCockpit",
+  "AuthoritySpy",
+  "Buzzstream",
+  "DIBZ",
+  "disavow.it",
+  "Domain Hunter Plus",
+  "GroupHigh",
+  "HARO ",
+  "JustReachOut",
+  "Linkbird",
+  "Linkody",
+  "Linkstant",
+  "MailShake",
+  "Muck Rack",
+  "Ninja",
+  "Ontolo",
+  "Pitchbox",
+  "Remove'em",
+  "Rmoov",
+  "ScrapeBox",
+  "tableau",
+  "qlik",
+  "power bi"
+))
+```
 
+```{r 5-3-requirement-tools, fig.width = 12, fig.height = 7}
+df_en %>% 
+  mutate(description = str_to_lower(description)) %>% 
+  rowwise() %>% 
+  mutate(n_tools = sum(str_detect(description, tools))) %>% 
+  count(n_tools) %>% 
+  ggplot(aes(n_tools, n)) +
+    geom_col(fill = bl_col, width = .8) +
+    geom_text(
+      aes(label = n),
+      family = "Montserrat",
+      color = bl_col,
+      fontface = "bold",
+      size = 4,
+      nudge_y = 10
+    )  +
+    scale_x_continuous(
+      breaks = 0:10,
+      labels = c("None", "1 tool", glue::glue("{2:10} tools")),
+      expand = c(.001, .001)
+    ) +
+    scale_y_continuous(
+      breaks = NULL,
+      expand = c(.01, .01)
+    ) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      axis.line.y = element_blank()
+    ) +
+    labs(
+      x = "Number of tools mentioned in job descriptions",
+      y = NULL
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_3_require_tools.pdf"), 
+         width = 12, height = 8, device = cairo_pdf) 
+}
+```
 
 
 ## 5.4	Years of Experience
@@ -2207,7 +2464,7 @@ CED: List still needed (incl. tools like Power BI, Tableau etc)
 ```{r data-prep-salary}
 df_salary <- 
   df_gd %>% 
-  dplyr::select(salary, employer, ratings) %>% 
+  dplyr::select(salary, employer, ratings, description, location) %>% 
   filter(!is.na(salary)) %>% 
   mutate(
     salary_low = str_extract(salary, "\\$.*\\-"),
@@ -2231,7 +2488,7 @@ df_salary %>%
   ggplot(aes(x = salary_avg)) +
     geom_histogram(
       fill = bl_col, 
-      color = colorspace::darken(bl_col, .4),
+      color = darken(bl_col, .4),
       bins = 50
     ) +
     geom_vline(
@@ -2277,9 +2534,148 @@ if(save == T){
 
 ## 6.2	Salaries per Location
 
-* Where do companies pay the most/least? TODO
+* Where do companies pay the most/least?
 
--> Simple bar plot of extreme cities/states
+```{r 6-2-sdalary-per-city, fig.width = 12, fig.height = 8}
+df_salary_cities <-
+  df_salary %>% 
+  group_by(location) %>% 
+  summarize(
+    avg = mean(salary_avg),
+    n = n()
+  ) %>% 
+  filter(n >= 5) %>% 
+  mutate(
+    state = str_extract(location, "[^, ]*$"),
+    state_lump = case_when(
+      state == "CA" ~ "California",
+      state == "TX" ~ "Texas",
+      TRUE ~ "other"
+    )
+  ) %>% 
+  arrange(-avg)
+
+df_salary_cities %>% 
+  ggplot(aes(avg, fct_reorder(location, avg))) +
+    geom_col(
+      aes(fill = state_lump),
+      orientation = "y",
+      width = .85
+   ) +
+   geom_text(
+     data = df_salary_cities %>% slice(c(1, 8)),
+     aes(label = state_lump),
+     family = "Montserrat",
+     fontface = "bold",
+     color = "white",
+     hjust = 1,
+     nudge_x = -1.5
+   ) +
+   ggtext::geom_richtext(
+     aes(label = glue::glue("**${round(avg, 1)}K** (n = {n})")),
+     family = "Montserrat",
+     color = "grey40",
+     size = 3,
+     fill = NA,
+     label.color = NA,
+     hjust = 0,
+     nudge_x = .5
+   ) +
+   scale_x_continuous(
+     breaks = seq(0, 100, by = 25),
+     labels = glue::glue("${seq(0, 100, by = 25)}K"),
+     expand = c(.001, .001),
+     limits = c(0, 130)
+   ) +
+   scale_fill_manual(
+     values = c(darken(bl_col, .25), "grey60", bl_col),
+     guide = F
+   ) +
+   labs(
+     x = "Average salary",
+     y = NULL,
+     caption = 'Note: Only cities with 5 or more offers including salary estimations shown.'
+   ) +
+   theme(panel.grid.major.y = element_blank())
+
+if(save == T){ 
+  ggsave(here::here("plots", "6_2_salary_cities.pdf"), 
+         width = 12, height = 8, device = cairo_pdf) 
+}
+```
+
+```{r 6-2-sdalary-per-state, fig.width = 12, fig.height = 8}
+df_salary_states <-
+  df_salary %>% 
+  mutate(
+    state = str_extract(location, "[^, ]*$"),
+    state_lump = case_when(
+      state == "CA" ~ "California",
+      state == "TX" ~ "Texas",
+      TRUE ~ "other"
+    )
+  ) %>% 
+  group_by(state) %>% 
+  summarize(
+    avg = mean(salary_avg),
+    min = min(salary_avg),
+    max = max(salary_avg),
+    sd = sd(salary_avg),
+    n = n()
+  ) %>% 
+  filter(n >= 10) %>% 
+  arrange(-avg)
+
+df_salary_states %>% 
+  ggplot(aes(avg, fct_reorder(state, avg))) +
+    geom_linerange(
+      aes(
+        xmin = min,#avg - sd, 
+        xmax = max,#avg + sd
+      ),
+      color = bl_col,
+      size = 1.2
+    ) +
+    geom_point(
+      color = darken(bl_col, .2, space = "HLS"),
+      size = 7
+    ) +
+    geom_text(
+      aes(label = glue::glue("${round(avg, 1)}K")),
+      family = "Montserrat",
+      color = darken(bl_col, .2, space = "HLS"),
+      fontface = "bold",
+      size = 3,
+      nudge_x = -9,
+      nudge_y = .3
+    ) +
+    geom_text(
+      aes(label = glue::glue("(n = {n})")),
+      family = "Montserrat",
+      color = darken(bl_col, .2, space = "HLS"),
+      size = 3,
+      fill = NA,
+      label.color = NA,
+      hjust = 0,
+      nudge_x = 4,
+      nudge_y = .3
+    ) +
+    scale_x_continuous(
+      breaks = seq(0, 300, by = 50),
+      labels = glue::glue("${seq(0, 300, by = 50)}K")
+    ) +
+    labs(
+      x = "Average salary",
+      y = NULL,
+      caption = 'Note: Only states with 10 or more offers including salary estimations shown.\nPoints show the average estimated salary, lines indicate the range of salaries per state.'
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "6_2_salary_states.pdf"), 
+         width = 12, height = 7, device = cairo_pdf) 
+}
+```
+
 
 
 ## 6.3	Salaries for Different Positions
@@ -2289,20 +2685,141 @@ if(save == T){
 
 ## 6.4	Salaries per Job Requirement
 
-* Do positions with programming languages pay significantly more? TODO
+* Do positions with programming languages pay significantly more?
+
+```{r 6-4-salary-requirement-programming, fig.width = 7, fig.height = 9}
+df_salary %>% 
+  mutate(
+    description = str_to_lower(description),
+    prog = str_detect(description, c("\\bjavascript\\b", "\\bhtml\\b", "\\bcss\\b", "\\bsql\\b", 
+                                     "\\bpython\\b", "\\bjava\\b", "\\bbash\\b", "\\bshell\\b", 
+                                     "\\bpowershell\\b", "\\bc#\\b", "\\bphp\\b", "\\bc\\b\\+\\+", 
+                                     "\\btypescript\\b", "\\bc\\b", "\\bruby\\b", "\\bgo\\b", 
+                                     "\\bassembly\\b", "\\bswift\\b", "\\bkotlin\\b", "\\br\\b", 
+                                     "\\bvba\\b", "\\bobjective-c\\b", "\\bobjective\\sc\\b", 
+                                     "\\bscala\\b", "\\brust\\b", "\\bdart\\b", "\\belixir\\b", 
+                                     "\\bCcojure\\b", "\\bwebassembly\\b", "\\bjulia\\b"))
+  ) %>% 
+  dplyr::select(salary_avg, prog) %>% 
+  group_by(prog) %>% 
+  summarize(
+    avg = mean(salary_avg),
+    med = median(salary_avg),
+    sd = sd(salary_avg)
+  ) %>% 
+  mutate(hjust = if_else(prog == F, 1.3, -.3)) %>% 
+  ggplot(aes(prog, avg)) +
+    geom_linerange(
+      aes(
+        ymin = avg - sd, 
+        ymax = avg + sd
+      ),
+      color = "grey40",
+      size = 1.2
+    ) +
+    geom_line(
+      aes(group = 1),
+      color = "grey40",
+      size = .4,
+      linetype = "dashed"
+    ) +
+    geom_line(
+      aes(
+        y = med,
+        group = 1
+      ),
+      color = bl_col,
+      size = .4,
+      linetype = "dashed"
+    ) +
+    geom_point(
+      color = "grey40",
+      size = 7
+    ) +
+    geom_point(
+      aes(y = med),
+      size = 3,
+      stroke = 2,
+      shape = 4,
+      color = bl_col
+    ) +
+    geom_text(
+      aes(
+        label = glue::glue("${round(avg, 1)}K"), 
+        hjust = hjust
+      ),
+      family = "Montserrat",
+      color = "grey40",
+      fontface = "bold",
+      size = 4.5,
+      nudge_y = 3
+    ) +
+    geom_text(
+      aes(
+        y = med,
+        label = glue::glue("${round(med, 1)}K"), 
+        hjust = hjust
+      ),
+      family = "Montserrat",
+      color = bl_col,
+      fontface = "bold",
+      size = 4.5,
+      nudge_y = -2
+    ) +
+    annotate(
+      "text",
+      x = 1.5,
+      y = 78,
+      label = "Average",
+      family = "Montserrat",
+      color = "grey40",
+      fontface = "bold",
+      size = 4.5
+    ) +
+    annotate(
+      "text",
+      x = 1.5,
+      y = 69,
+      label = "Median",
+      family = "Montserrat",
+      color = bl_col,
+      fontface = "bold",
+      size = 4.5
+    ) +
+    scale_x_discrete(
+      labels = c("No", "Yes"),
+      expand = c(.2, .2)
+    ) +
+    scale_y_continuous(
+      breaks = seq(40, 120, by = 20),
+      labels = glue::glue("${seq(40, 120, by = 20)}K"),
+      limits = c(40, NA)
+    ) +
+    labs(
+      x = "Programming language\nmentioned as requirement?",
+      y = "Estimated salary",
+      caption = "The line shows the standard deviation from the estimated average salaries."
+    ) +
+    theme(panel.grid.major.x = element_blank())
+
+if(save == T){ 
+  ggsave(here::here("plots", "6_4_salary_req_prog.pdf"), 
+         width = 7, height = 9, device = cairo_pdf) 
+}
+```
 
 
 ## 6.5	Salaries per Company Rating
 
 * Do lower rated companies pay less (salary)?
 
-```{r 6-5-salary-rating}
+```{r 6-5-salary-rating, fig.width = 12, fig.height = 7.5}
 df_salary %>% 
   filter(!is.na(ratings)) %>% 
   ggplot(aes(ratings, salary_avg)) + 
     geom_smooth(
       #method = "lm",
-      color = colorspace::darken(bl_col, .2), 
+      color = darken(bl_col, .2), 
       se = F
     ) +
     geom_point(
@@ -2336,6 +2853,117 @@ if(save == T){
 
 
 
+# 7. Dates of Job Offer Posting
+
+```{r data-dates}
+df_dates <-
+  df_li_en %>% 
+  filter(
+    !str_detect(location, "United Kingdom"),
+    !str_detect(location, "South Africa"),
+    !str_detect(location, "Australia"),
+    !str_detect(location, "Ireland"),
+    !str_detect(location, "Canada")
+  ) %>% 
+  mutate(
+    year = lubridate::year(posted_on),
+    week = lubridate::week(posted_on),
+    wday = lubridate::wday(posted_on),
+    wday_lab = lubridate::wday(posted_on, label = T, abbr = F),
+    week_cum = week + (year - 2018) * 52
+  )
+```
+
+## 7.1 Timeline
+
+Old job offers may not be scraped since they were filled already and removed from/by LinkedIn?! I would not investigate anything with this data at all...
+
+```{r}
+df_dates %>% 
+  count(week_cum, year) %>% 
+  ggplot(aes(week_cum, n)) +
+    geom_col(aes(fill = as.factor(year)), width = 1.05) +
+    scale_x_continuous(expand = c(.005, .005)) +
+    scale_y_continuous(expand = c(.01, .01)) +
+    scale_fill_manual(
+      values = c(bl_col, darken(bl_col, .2, space = "HLS")),
+      name = NULL
+    ) +
+    labs(
+      x = "Date posted in weeks",
+      y = "Number of job offers on LinkedIn.com"
+    ) +
+    theme(
+      axis.text.x = element_blank(),
+      legend.position = c(.3, .7),
+      legend.direction = "horizontal"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "7_1_dates_weeks_all.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+```
+
+
+* Did the number of job offers decline during the COVID-19 pandemic?
+
+```{r}
+df_dates %>% 
+  filter(year == 2020) %>% 
+  count(week) %>% 
+  ggplot(aes(week, n)) +
+    geom_col(
+      aes(fill = week < 9),
+      width = .85
+    ) +
+    scale_x_continuous(
+      breaks = 1:52,
+      expand = c(.01, .01)
+    ) +
+    scale_y_continuous(expand = c(.01, .01)) +
+    scale_fill_manual(
+      values = c("#b30086", bl_col),
+      guide = F
+    ) +
+    labs(
+      x = "Week posted",
+      y = "Number of job offers on LinkedIn.com",
+      caption = "Note: In week 9 the number of confirmed COID-19 infections reached 100 and are colored pink."
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "7_1_dates_weeks_2020.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+```
+
+
+## 7.2 Weekday of Posting
+
+* Are there favorite weekdays for job postings?
+
+```{r}
+df_dates %>% 
+  count(wday, wday_lab) %>% 
+  ggplot(aes(fct_reorder(wday_lab, wday), n)) +
+    geom_col(
+      width = .85,
+      fill = bl_col
+    ) +
+    scale_y_continuous(expand = c(.01, .01)) +
+    labs(
+      x = "Weekday posted",
+      y = "Number of job offers on LinkedIn.com"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "7_2_dates_weekday.pdf"), 
+         width = 12, height = 8, device = cairo_pdf) 
+}
+```
+
+
 
 # Convert PDFs to PNGs
 
@@ -2345,7 +2973,7 @@ pdfs <- list.files(here::here("plots"), pattern = "*.pdf")
 setwd(here::here("plots", "png"))
 
 for(pdf in pdfs) {
-  pdf_convert(pdf = here::here("plots", "6_1_salary_histo.pdf"), 
+  pdf_convert(pdf = here::here("plots", pdf), 
               format = "png", dpi = 750)
 }
 ```

@@ -2723,6 +2723,10 @@ df_salary %>%
       size = .4,
       linetype = "dashed"
     ) +
+     geom_point(
+      color = "grey40",
+      size = 7
+    ) +
     geom_line(
       aes(
         y = med,
@@ -2732,11 +2736,7 @@ df_salary %>%
       size = .4,
       linetype = "dashed"
     ) +
-    geom_point(
-      color = "grey40",
-      size = 7
-    ) +
-    geom_point(
+   geom_point(
       aes(y = med),
       size = 3,
       stroke = 2,

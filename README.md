@@ -2,14 +2,11 @@
 
 by Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)
 
+
 # Internal Comments & Questions
 
-* 3 more sections on my list TBD:
+* 3 more sections on my list TBD: 
   + 5.4	Years of Experience (1 plot)
-  + 6.2	Salaries per Location (~2 plots)
-  + 6.4	Salaries per job requirement (1 plot)
-
-* List of tools still needed (incl. tools like Power BI, Tableau etc) for section 5.3	Knowledge of Popular Tools
 
 
 # 0. Introduction
@@ -77,12 +74,16 @@ The modified stacked bar plot shows the number of words found per job category a
 
 ![](./plots/png/2_1_map_states_cities_1.png)
 
+![](./plots/png/2_1_bars_cities_1.png)
+
+![](./plots/png/2_1_bars_cities_10+_1.png)
+
 
 ## 2.2 Hot Spots by States
 
 ### Chloropleth Map
 
-This map is derived from spatial locations by intersecting cities with state polygons - thus slightly different numbers compared to the hexagonal grid map which uses states as stated by the source.
+This map is derived from spatial locations by intersecting cities with state polygons - thus slightly different numbers compared to the hexagonal grid map which uses states as stated by the source. 
 
 ![](./plots/png/2_2_map_states_chloro_1.png)
 
@@ -111,6 +112,7 @@ Below is a map based on the location information in the data so same numbers as 
 
 ![](./plots/png/3_1_size_histo_1.png)
 
+
 ####  (Do larger companies require more specialized tasks?)
 
 CED: What do we define as "more specialized tasks"?
@@ -119,7 +121,7 @@ CED: What do we define as "more specialized tasks"?
 
 ## 3.2	Revenue
 
-* How much revenue do hiring companies make?
+* How much revenue do hiring companies make? 
 
 -> Counts of unique companies per revenue class
 
@@ -151,7 +153,7 @@ I tokenized the description and removed stop words and numbers as well as manual
 
 ## 3.4	Company Rating
 
-#### Do more low- or high-rated companies hire?
+#### Do more low- or high-rated companies hire? 
 
 -> Counts of unique companies per rating
 
@@ -228,7 +230,10 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 
 #### What tools are most often required?
 
-CED: List still needed (incl. tools like Power BI, Tableau etc)
+![](./plots/png/5_3_require_tools_1.png)
+
+(Note: It is a very long list and counting each is not ass straightforward as I hoped [likely some purrrr::map combination with str_count?] so I herer is a simply histogram for no. As one can see, there are only 86 offers mention 1 or 2 tools, most none at all. Let me know iof I should spend time here or if n is anyway too low to make it worth.)
+
 
 
 ## 5.4	Years of Experience
@@ -252,7 +257,10 @@ CED TBD
 
 #### Where do companies pay the most/least?
 
-CED TBD -> Simple bar plot of extreme cities/states
+
+![](./plots/png/6_2_salary_cities_1.png)
+
+![](./plots/png/6_2_salary_states_1.png)
 
 
 ## 6.3	Salaries for different positions
@@ -264,7 +272,7 @@ CED TBD -> Simple bar plot of extreme cities/states
 
 #### Do positions with programming languages pay significantly more?
 
-CED TBD
+![](./plots/png/6_4_salary_req_prog_1.png)
 
 
 ## 6.5	Salaries per Company Rating
@@ -274,3 +282,26 @@ CED TBD
 ![](./plots/png/6_5_rating_salary_1.png)
 
 #### (Which companies have the highest ratings?)
+
+
+
+## 7.1 Timeline
+
+Old job offers may not be scraped since they were filled already and removed from/by LinkedIn?! I would not investigate anything with this data at all...
+
+![](./plots/png/7_1_dates_weeks_all_1.png)
+
+
+* Did the number of job offers decline during the COVID-19 pandemic?
+
+![](./plots/png/7_1_dates_weeks_2020_1.png)
+
+
+
+## 7.2 Weekday of Posting
+
+* Are there favorite weekdays for job postings?
+
+![](./plots/png/7_2_dates_weekday_1.png)
+
+

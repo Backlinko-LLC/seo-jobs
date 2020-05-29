@@ -218,21 +218,21 @@ df_gd_join <-
   df_gd %>% 
   mutate(
     employment_type = case_when(
-      str_detect(description, "ulltime|ull-time|ull-Time") ~ "Full-time",
-      str_detect(description, "arttime|art-time|art-Time") ~ "Part-time",
+      str_detect(str_to_lower(description), "fulltime|full-time") ~ "Full-time",
+      str_detect(str_to_lower(description), "parttime|part-time") ~ "Part-time",
       TRUE ~ NA_character_
     ),
     seniority = case_when(
-      str_detect(description, "nternship") ~ "Internship",
-      str_detect(job_title, "intern|Intern") ~ "Internship",
-      str_detect(description, "junior|Junior") ~ "Junior",
-      str_detect(job_title, "junior|Junior") ~ "Junior",
-      str_detect(description, "senior|Senior") ~ "Senior",
-      str_detect(job_title, "senior|Senior") ~ "Senior",
-      str_detect(description, "ntry level|ntry Level") ~ "Entry level",
-      str_detect(job_title, "id-Senior|id-senior|id Senior|id senior") ~ "Mid-Senior level",
-      str_detect(job_title, "irector") ~ "Director",
-      str_detect(job_title, "xecutive") ~ "Executive",
+      str_detect(str_to_lower(description), "internship") ~ "Internship",
+      str_detect(str_to_lower(job_title), "intern") ~ "Internship",
+      str_detect(str_to_lower(description), "junior") ~ "Junior",
+      str_detect(str_to_lower(job_title), "junior") ~ "Junior",
+      str_detect(str_to_lower(description), "senior") ~ "Senior",
+      str_detect(str_to_lower(job_title), "senior") ~ "Senior",
+      str_detect(str_to_lower(description), "entry level|entry-level") ~ "Entry level",
+      str_detect(str_to_lower(job_title), "mid-senior|mid senior") ~ "Mid-Senior level",
+      str_detect(str_to_lower(job_title), "director") ~ "Director",
+      str_detect(str_to_lower(job_title), "executive") ~ "Executive",
       TRUE ~ NA_character_
     )
   ) %>% 
@@ -345,7 +345,7 @@ df_en <-
     description = str_replace_all(description, "\\n", " "),
     description = str_replace_all(description, "\\s+", " ")
   ) %>% 
-  distinct(job_title, employer, location, .keep_all = TRUE)
+  distinct(str_sub(job_title, 1, 15), employer, location, .keep_all = TRUE)
   #distinct(job_title, employer, location, description, .keep_all = TRUE) ## description often slightly different (diff: 111 offers)
 ```
 
@@ -356,7 +356,7 @@ We use two data sets:
   - subset for "SEO": with 2,387 observations
   - subset for "SEO" and English-speaking offers: with 603 observations
 
-The LinkedIn data contain global job offers while the GlassDoor data only jobs from the US. The LinkedIn data including only job offers with the term `SEO` (or `seo`) contain 2,387 observations from English-speaking countries (USA, Canada, UK, Australia, Ireland, South Africa) and 552 from the USA and the UK (links starting with `www.linkedin.com`).
+The LinkedIn data contain global job offers while the GlassDoor data only jobs from the US. The LinkedIn data including only job offers with the term `SEO` (or `seo`) contain 2,387 observations from English-speaking countries (USA, Canada, UK, Ireland, Australia, South Africa) and 552 from the USA and the UK (links starting with `www.linkedin.com`).
 
 We merged both data sets and kept as many variables as possible, manually creating new variables for both datasets (GlassDoor: `seniority` and `employment type`; LinkedIn: `sector`) based on text matching of job titles and descriptions. We also removed as many duplictaed entries as possible by matching job title, employer and job location. The final worldwide data set contains 3,127 observations.
 
@@ -992,7 +992,7 @@ if(save == T){
 
 ### Bar plot of most common cities
 
-```{r}
+```{r 2-1-bar-cities, fig.width = 12, fig.height = 8}
 df_cities <-
   df_loc_en %>% 
   left_join(df_geo_en, by = c("location" = "query")) %>% 
@@ -1873,7 +1873,7 @@ df_size_edu <-
 
 * What type of degrees are most often required (Bachelor vs Master vs Doctorate)? 
 
-```{r}
+```{r 5-1-requirement-education, fig.width = 12, fig.height = 7.5}
 df_size_edu %>% 
   group_by(education) %>% 
   summarize(n = sum(yes_no)) %>% 
@@ -1910,7 +1910,7 @@ Doctorate: 1
 
 * Do larger companies require a formal education?
 
-```{r 5-1-requirement-education, fig.width = 12, fig.height = 7.5}
+```{r 5-1-requirement-education-size, fig.width = 12, fig.height = 7.5}
 df_size_edu %>% 
   group_by(size, education) %>% 
   summarize(rel = sum(yes_no) / unique(total)) %>% 
@@ -2453,10 +2453,45 @@ if(save == T){
 
 ## 5.4	Years of Experience
 
-* What type of SEO jobs require +5 years experience? 
+* How much experience is required?
 
---> Simply filter by "5+ years"? Or search for years and extract number? How to evaluate if they use different ways to say the same?
+```{r 5-4-requirement-experience, fig.width = 12, fig.height = 7}
+df_en %>% 
+  mutate(
+    description = str_to_lower(description),
+    exp = str_extract(description, "[0-9]+ years experience|1 year experience|experience: [0-9]+ year|experience [0-9]+ year|experience of [0-9]+ year"),
+    exp = as.numeric(str_extract(exp, "[0-9]+")),
+  ) %>% 
+  filter(!is.na(exp)) %>% 
+  count(exp) %>% 
+  ggplot(aes(exp, n)) + 
+    geom_col(
+      fill = bl_col,
+      width = .9
+    ) +
+    scale_x_continuous(
+      breaks = c(1:6, 10, 30),
+      expand = c(.01, .01)
+    ) +
+    scale_y_continuous(
+      expand = c(.01, .01)
+    ) +
+    labs(
+      x = "Years of experience needed",
+      y = "Number of job offers"
+    ) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank()
+    )
 
+if(save == T){ 
+  ggsave(here::here("plots", "5_4_require_experience.pdf"), 
+         width = 12, height = 8, device = cairo_pdf) 
+}
+```
+
+* (What type of SEO jobs require +5 years experience? )
 
 
 # 6	Salaries
@@ -2858,27 +2893,22 @@ if(save == T){
 ```{r data-dates}
 df_dates <-
   df_li_en %>% 
-  filter(
-    !str_detect(location, "United Kingdom"),
-    !str_detect(location, "South Africa"),
-    !str_detect(location, "Australia"),
-    !str_detect(location, "Ireland"),
-    !str_detect(location, "Canada")
-  ) %>% 
   mutate(
     year = lubridate::year(posted_on),
     week = lubridate::week(posted_on),
     wday = lubridate::wday(posted_on),
     wday_lab = lubridate::wday(posted_on, label = T, abbr = F),
     week_cum = week + (year - 2018) * 52
-  )
+  ) %>% 
+  filter(year != 2018)
 ```
 
-## 7.1 Timeline
+
+## 7.1 Job offers by week and year
 
 Old job offers may not be scraped since they were filled already and removed from/by LinkedIn?! I would not investigate anything with this data at all...
 
-```{r}
+```{r 7-1-dates-all-years, fig.width = 12, fig.height = 6.5}
 df_dates %>% 
   count(week_cum, year) %>% 
   ggplot(aes(week_cum, n)) +
@@ -2908,9 +2938,13 @@ if(save == T){
 
 * Did the number of job offers decline during the COVID-19 pandemic?
 
-```{r}
+```{r 7-1-dates-2020-covid, fig.width = 12, fig.height = 6.5}
 df_dates %>% 
-  filter(year == 2020) %>% 
+  filter(
+    year == 2020,
+    str_detect(url, "https://www.linkedin.com"),
+    !str_detect(location, "United Kingdom|UK|England|Wales|Ireland")
+  ) %>% 
   count(week) %>% 
   ggplot(aes(week, n)) +
     geom_col(
@@ -2921,7 +2955,10 @@ df_dates %>%
       breaks = 1:52,
       expand = c(.01, .01)
     ) +
-    scale_y_continuous(expand = c(.01, .01)) +
+    scale_y_continuous(
+      expand = c(.01, .01),
+      breaks = seq(0, 200, by = 20)
+    ) +
     scale_fill_manual(
       values = c("#b30086", bl_col),
       guide = F
@@ -2929,7 +2966,11 @@ df_dates %>%
     labs(
       x = "Week posted",
       y = "Number of job offers on LinkedIn.com",
-      caption = "Note: In week 9 the number of confirmed COID-19 infections reached 100 and are colored pink."
+      caption = "Note: In week 9 the number of confirmed COID-19 infections reached 100 in the US and the bars are thus colored pink afterwards. Each bar shows only US job posting on LinkedIn."
+    ) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank()
     )
 
 if(save == T){ 
@@ -2943,7 +2984,7 @@ if(save == T){
 
 * Are there favorite weekdays for job postings?
 
-```{r}
+```{r 7-2-dates-weekdays, fig.width = 12, fig.height = 8}
 df_dates %>% 
   count(wday, wday_lab) %>% 
   ggplot(aes(fct_reorder(wday_lab, wday), n)) +

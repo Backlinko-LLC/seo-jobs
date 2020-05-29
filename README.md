@@ -3,12 +3,6 @@
 by Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)
 
 
-# Internal Comments & Questions
-
-* 3 more sections on my list TBD: 
-  + 5.4	Years of Experience (1 plot)
-
-
 # 0. Introduction
 
 We use two data sets:
@@ -121,7 +115,7 @@ CED: What do we define as "more specialized tasks"?
 
 ## 3.2	Revenue
 
-* How much revenue do hiring companies make? 
+#### How much revenue do hiring companies make? 
 
 -> Counts of unique companies per revenue class
 
@@ -238,9 +232,21 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 
 ## 5.4	Years of Experience
 
-#### What type of SEO jobs require +5 years experience?
+#### How much experience is required?
 
-CED TBD
+Still not sure how to approach that in a better way. For now I have filtered the descriptions for the following strings:
+
+* `[0-9]+ years experience` and `1 year experience`
+* `experience: [0-9]+ year`
+* `experience [0-9]+ year`
+* `experience of [0-9]+ year`
+
+![](./plots/png/5_4_require_experience_1.png)
+
+
+#### (What type of SEO jobs require +5 years experience?)
+
+Given the low number of job offers where years of experience could be easily extracted, I would not go any deeper here and skip this question (at least for now).
 
 
 
@@ -285,14 +291,16 @@ CED TBD
 
 
 
-## 7.1 Timeline
+# 7. Dates of Job Offer Posting
+
+## 7.1 Job offers by week and year
 
 Old job offers may not be scraped since they were filled already and removed from/by LinkedIn?! I would not investigate anything with this data at all...
 
 ![](./plots/png/7_1_dates_weeks_all_1.png)
 
 
-* Did the number of job offers decline during the COVID-19 pandemic?
+#### Did the number of job offers decline during the COVID-19 pandemic?
 
 ![](./plots/png/7_1_dates_weeks_2020_1.png)
 
@@ -300,7 +308,7 @@ Old job offers may not be scraped since they were filled already and removed fro
 
 ## 7.2 Weekday of Posting
 
-* Are there favorite weekdays for job postings?
+#### Are there favorite weekdays for job postings?
 
 ![](./plots/png/7_2_dates_weekday_1.png)
 

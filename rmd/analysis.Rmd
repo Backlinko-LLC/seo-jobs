@@ -202,14 +202,44 @@ pos_cols <- colfunc(10)
 ```{r data-glassdoor}
 df_gd <- readr::read_csv(here::here("raw_data", "Glassdoor - 2020-04-01-0.csv")) %>% 
   janitor::clean_names() %>% 
-  dplyr::select(-url)
+  dplyr::select(-url) %>% 
+  mutate(
+    description = str_replace_all(description, "\\r", " "),
+    description = str_replace_all(description, "\\n", " "),
+    description = str_replace_all(description, "\\s+", " "),
+    description = str_to_lower(description),
+    description = str_replace_all(description, "search engine optimization", "seo"),
+    description = str_replace_all(description, "seo seo", "seo"),
+    job_title = str_to_title(job_title),
+    job_title = str_replace_all(job_title, "Search Engine Optimization", "Seo"),
+    job_title = str_replace_all(job_title, "Seo Seo", "Seo"),
+    job_title = str_replace_all(job_title, "Seo", "SEO"),
+    job_title = str_replace_all(job_title, "Sr", "SR"),
+    job_title = str_replace_all(job_title, "Sem", "SEM"),
+    job_title = str_replace_all(job_title, "Ppc", "PPC")
+  )
 ```
 
 ```{r data-linkedin}
 df_li <- readr::read_csv(here::here("raw_data", "Linkedin.csv")) %>% 
   janitor::clean_names() %>% 
   filter(str_detect(job_title, " seo | SEO")) %>% 
-  mutate(size = as.character(size))
+  mutate(
+    size = as.character(size),
+    description = str_replace_all(description, "\\r", " "),
+    description = str_replace_all(description, "\\n", " "),
+    description = str_replace_all(description, "\\s+", " "),
+    description = str_to_lower(description),
+    description = str_replace_all(description, "search engine optimization", "seo"),
+    description = str_replace_all(description, "seo seo", "seo"),
+    job_title = str_to_title(job_title),
+    job_title = str_replace_all(job_title, "Search Engine Optimization", "Seo"),
+    job_title = str_replace_all(job_title, "Seo Seo", "Seo"),
+    job_title = str_replace_all(job_title, "Seo", "SEO"),
+    job_title = str_replace_all(job_title, "Sr", "SR"),
+    job_title = str_replace_all(job_title, "Sem", "SEM"),
+    job_title = str_replace_all(job_title, "Ppc", "PPC")
+  )
 ```
 
 ```{r combined-data}
@@ -218,21 +248,21 @@ df_gd_join <-
   df_gd %>% 
   mutate(
     employment_type = case_when(
-      str_detect(str_to_lower(description), "fulltime|full-time") ~ "Full-time",
-      str_detect(str_to_lower(description), "parttime|part-time") ~ "Part-time",
+      str_detect(description, "fulltime|full-time") ~ "Full-time",
+      str_detect(description, "parttime|part-time") ~ "Part-time",
       TRUE ~ NA_character_
     ),
     seniority = case_when(
-      str_detect(str_to_lower(description), "internship") ~ "Internship",
-      str_detect(str_to_lower(job_title), "intern") ~ "Internship",
-      str_detect(str_to_lower(description), "junior") ~ "Junior",
-      str_detect(str_to_lower(job_title), "junior") ~ "Junior",
-      str_detect(str_to_lower(description), "senior") ~ "Senior",
-      str_detect(str_to_lower(job_title), "senior") ~ "Senior",
-      str_detect(str_to_lower(description), "entry level|entry-level") ~ "Entry level",
-      str_detect(str_to_lower(job_title), "mid-senior|mid senior") ~ "Mid-Senior level",
-      str_detect(str_to_lower(job_title), "director") ~ "Director",
-      str_detect(str_to_lower(job_title), "executive") ~ "Executive",
+      str_detect(description, "internship") ~ "Internship",
+      str_detect(job_title, "intern") ~ "Internship",
+      str_detect(description, "junior") ~ "Junior",
+      str_detect(job_title, "junior") ~ "Junior",
+      str_detect(description, "senior") ~ "Senior",
+      str_detect(job_title, "senior") ~ "Senior",
+      str_detect(description, "entry level|entry-level") ~ "Entry level",
+      str_detect(job_title, "mid-senior|mid senior") ~ "Mid-Senior level",
+      str_detect(job_title, "director") ~ "Director",
+      str_detect(job_title, "executive") ~ "Executive",
       TRUE ~ NA_character_
     )
   ) %>% 
@@ -263,12 +293,7 @@ df_world <-
     industry,
     "sector" = job_functions
   ) %>% 
-  full_join(df_gd_join) %>% 
-  mutate(
-    description = str_replace_all(description, "\\r", " "),
-    description = str_replace_all(description, "\\n", " "),
-    description = str_replace_all(description, "\\s+", " ")
-  ) %>% 
+  full_join(df_gd_join) %>%
   distinct(job_title, employer, location, description, .keep_all = TRUE)
 
 ###################################################
@@ -340,11 +365,6 @@ df_en <-
     )
   ) %>% 
   full_join(df_gd_join) %>% 
-  mutate(
-    description = str_replace_all(description, "\\r", " "),
-    description = str_replace_all(description, "\\n", " "),
-    description = str_replace_all(description, "\\s+", " ")
-  ) %>% 
   distinct(str_sub(job_title, 1, 15), employer, location, .keep_all = TRUE)
   #distinct(job_title, employer, location, description, .keep_all = TRUE) ## description often slightly different (diff: 111 offers)
 ```
@@ -381,7 +401,7 @@ df_en %>%
   count(word, sort = T) %>% 
   filter(
     n >= 25,
-    !word %in% c("seo")
+    !word %in% c("seo", "search", "engine", "optimization")
   ) %>% 
   mutate(
     word = if_else(
@@ -407,7 +427,7 @@ df_en %>%
     labs(
       x = NULL, 
       y = "Term frequence in job titles",
-      caption = 'Note: Only words with a frequency of 25 or more shown. The term "SEO" was removed.'
+      caption = 'Note: Only words with a frequency of 25 or more shown. The terms "SEO", "Search", "Engine", and "Optimization" were removed.'
     ) +
     theme_flip
 
@@ -1706,7 +1726,7 @@ df_gd %>%
       limits = c(0, 40)
     ) +
     labs(
-      x = "Number of employees", 
+      x = "Company rating", 
       y = "Number of companies"
     ) +
     theme(panel.grid.major.x = element_blank())
@@ -1850,11 +1870,11 @@ if(save == T){
 
 ```{r data-prep-education}
 df_size_edu <-
-  df_size %>% 
+  df_size %>%
   mutate(
-    bachelors = if_else(str_detect(description, "B.Ba.|B.Sc.|BBa|BSc|BBA|BSC|Bachelors"), 1, 0),
-    masters = if_else(str_detect(description, "M.Ba.|M.Sc.|MBa|MSc|MBA|MSC|Masters"), 1, 0),
-    doctorate = if_else(str_detect(description, "Ph.D.|PhD|Doctorate"), 1, 0)
+    bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|bachelor"), 1, 0),
+    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|master"), 1, 0),
+    doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
   ) %>% 
   dplyr::select(size, bachelors, masters, doctorate) %>% 
   pivot_longer(
@@ -1954,9 +1974,10 @@ if(save == T){
 df_rev_edu <-
   df_revenue %>% 
   mutate(
-    bachelors = if_else(str_detect(description, "B.Ba.|B.Sc.|BBa|BSc|BBA|BSC|Bachelors"), 1, 0),
-    masters = if_else(str_detect(description, "M.Ba.|M.Sc.|MBa|MSc|MBA|MSC|Masters"), 1, 0),
-    doctorate = if_else(str_detect(description, "Ph.D.|PhD|Doctorate"), 1, 0)
+        bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|bachelor"), 1, 0),
+    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|master"), 1, 0),
+    doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
+
   ) %>% 
   dplyr::select(revenue, bachelors, masters, doctorate) %>% 
   pivot_longer(
@@ -2077,7 +2098,6 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 df_prog <-
   df_gd %>% 
   mutate(
-    description = str_to_lower(description),
     JavaScript = str_count(description, "\\bjavascript\\b"),
     HTML = str_count(description, " html\\b"),
     CSS = str_count(description, "\\bcss\\b"),
@@ -2410,7 +2430,6 @@ tools <- str_to_lower(c(
 
 ```{r 5-3-requirement-tools, fig.width = 12, fig.height = 7}
 df_en %>% 
-  mutate(description = str_to_lower(description)) %>% 
   rowwise() %>% 
   mutate(n_tools = sum(str_detect(description, tools))) %>% 
   count(n_tools) %>% 
@@ -2458,7 +2477,6 @@ if(save == T){
 ```{r 5-4-requirement-experience, fig.width = 12, fig.height = 7}
 df_en %>% 
   mutate(
-    description = str_to_lower(description),
     exp = str_extract(description, "[0-9]+ years experience|1 year experience|experience: [0-9]+ year|experience [0-9]+ year|experience of [0-9]+ year"),
     exp = as.numeric(str_extract(exp, "[0-9]+")),
   ) %>% 
@@ -2725,7 +2743,6 @@ if(save == T){
 ```{r 6-4-salary-requirement-programming, fig.width = 7, fig.height = 9}
 df_salary %>% 
   mutate(
-    description = str_to_lower(description),
     prog = str_detect(description, c("\\bjavascript\\b", "\\bhtml\\b", "\\bcss\\b", "\\bsql\\b", 
                                      "\\bpython\\b", "\\bjava\\b", "\\bbash\\b", "\\bshell\\b", 
                                      "\\bpowershell\\b", "\\bc#\\b", "\\bphp\\b", "\\bc\\b\\+\\+", 

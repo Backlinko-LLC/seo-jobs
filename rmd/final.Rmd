@@ -244,7 +244,7 @@ In total we found 39 positions mentioning Bachelors, 10 Masters and only one bel
 
 #### Which education level is required by high-revenue companies?
 
--> I've added this since it's a low hanging fruit after the last section ;)
+-> I've added this since it's a low hanging fruit after the last section ;)  
 -> 3 different versions to deal with poverplotting of the x-axis labels
 
 ![](../plots/png/5_1_require_edu_revenue_dodge_1.png)

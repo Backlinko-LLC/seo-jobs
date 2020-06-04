@@ -206,8 +206,10 @@ I tokenized the description and removed stop words and numbers as well as manual
 
 ![](../plots/png/3_4_rating_histo_1.png)
 
+#### Which companies have the highest ratings?
 
-#### (Which companies have the highest ratings?)
+![](../plots/png/3_4_rating_best_1.png)
+![](../plots/png/3_4_rating_worst_1.png)
 
 
 # 4	Job Responsibilities
@@ -337,8 +339,6 @@ Given the low number of job offers where years of experience could be easily ext
 #### Do lower rated companies pay less (salary)?
 
 ![](../plots/png/6_5_rating_salary_1.png)
-
-#### (Which companies have the highest ratings?)
 
 
 

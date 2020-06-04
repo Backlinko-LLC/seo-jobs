@@ -365,7 +365,8 @@ df_en <-
     )
   ) %>% 
   full_join(df_gd_join) %>% 
-  distinct(str_sub(job_title, 1, 15), employer, location, .keep_all = TRUE)
+  distinct(str_sub(job_title, 1, 15), employer, location, .keep_all = TRUE) %>% 
+  dplyr::select(-`str_sub(job_title, 1, 15)`)
   #distinct(job_title, employer, location, description, .keep_all = TRUE) ## description often slightly different (diff: 111 offers)
 ```
 
@@ -1769,6 +1770,74 @@ if(save == T){
 ```
 
 
+* Which companies have the highest ratings?
+
+```{r 3-4-rating-best, fig.width = 5, fig.height = 2}
+df_gd %>% 
+  filter(
+    ratings == max(ratings, na.rm = T),
+    !revenue %in% c("Unknown / Non-Applicable", 
+                    "Less than $1 million (USD)", 
+                    "$1 to $5 million (USD)", 
+                    "$5 to $10 million (USD)")
+  ) %>% 
+  dplyr::select(employer, location) %>% 
+  distinct() %>% 
+  arrange(employer) %>% 
+  mutate(
+    employer_details = glue::glue("• {employer} ({location})"),
+    id = row_number()
+  ) %>% 
+  ggplot(aes(1, id, label = employer_details)) +
+    geom_text(
+      family = "Montserrat",
+      fontface = "bold",
+      hjust = 0
+    ) +
+     scale_x_continuous(limits = c(1, 2)) +
+     scale_y_continuous(limits = c(.5, 7)) +
+     ggtitle("Companies with the best ratings\nand a revenue of $10M or more") +
+     theme_void() +
+     theme(
+       plot.title = element_text(family = "Montserrat", size = 16, color = bl_col, face = "bold")
+     )
+
+if(save == T){ 
+  ggsave(here::here("plots", "3_4_rating_best.pdf"), 
+         width = 5, height = 2, device = cairo_pdf) 
+}
+```
+
+```{r 3-4-rating-worst, fig.width = 5, fig.height = 1.8}
+df_gd %>% 
+  filter(ratings == min(ratings, na.rm = T)) %>% 
+  dplyr::select(employer, location) %>% 
+  distinct() %>% 
+  arrange(employer) %>% 
+  mutate(
+    employer_details = glue::glue("• {employer} ({location})"),
+    id = row_number()
+  ) %>% 
+  ggplot(aes(1, id, label = employer_details)) +
+    geom_text(
+      family = "Montserrat",
+      fontface = "bold",
+      hjust = 0
+    ) +
+     scale_x_continuous(limits = c(1, 2)) +
+     scale_y_continuous(limits = c(.5, 7)) +
+     ggtitle("Companies with the lowest ratings") +
+     theme_void() +
+     theme(
+       plot.title = element_text(family = "Montserrat", size = 16, color = bl_col, face = "bold")
+     )
+
+if(save == T){ 
+  ggsave(here::here("plots", "3_4_rating_worst.pdf"), 
+         width = 5, height = 1.8, device = cairo_pdf) 
+}
+```
+
 
 # 4	Job Responsibilities
 
@@ -2900,8 +2969,6 @@ if(save == T){
          width = 12, height = 7.5, device = cairo_pdf) 
 }
 ```
-
-* (Which companies have the highest ratings?)
 
 
 

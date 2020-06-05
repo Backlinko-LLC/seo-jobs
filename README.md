@@ -155,8 +155,10 @@ I tokenized the description and removed stop words and numbers as well as manual
 
 ![](./plots/png/3_4_rating_histo_1.png)
 
+#### Which companies have the highest ratings?
 
-#### (Which companies have the highest ratings?)
+![](./plots/png/3_4_rating_best_1.png)
+![](./plots/png/3_4_rating_worst_1.png)
 
 
 # 4	Job Responsibilities
@@ -193,7 +195,7 @@ In total we found 39 positions mentioning Bachelors, 10 Masters and only one bel
 
 #### Which education level is required by high-revenue companies?
 
--> I've added this since it's a low hanging fruit after the last section ;)
+-> I've added this since it's a low hanging fruit after the last section ;)  
 -> 3 different versions to deal with poverplotting of the x-axis labels
 
 ![](./plots/png/5_1_require_edu_revenue_dodge_1.png)
@@ -226,8 +228,7 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 
 ![](./plots/png/5_3_require_tools_1.png)
 
-(Note: It is a very long list and counting each is not ass straightforward as I hoped [likely some purrrr::map combination with str_count?] so I herer is a simply histogram for no. As one can see, there are only 86 offers mention 1 or 2 tools, most none at all. Let me know iof I should spend time here or if n is anyway too low to make it worth.)
-
+![](./plots/png/5_3_require_tools_ind_1.png)
 
 
 ## 5.4	Years of Experience
@@ -286,8 +287,6 @@ Given the low number of job offers where years of experience could be easily ext
 #### Do lower rated companies pay less (salary)?
 
 ![](./plots/png/6_5_rating_salary_1.png)
-
-#### (Which companies have the highest ratings?)
 
 
 

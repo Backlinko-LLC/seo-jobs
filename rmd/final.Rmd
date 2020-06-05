@@ -279,8 +279,7 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 
 ![](../plots/png/5_3_require_tools_1.png)
 
-(Note: It is a very long list and counting each is not ass straightforward as I hoped [likely some purrrr::map combination with str_count?] so I herer is a simply histogram for no. As one can see, there are only 86 offers mention 1 or 2 tools, most none at all. Let me know iof I should spend time here or if n is anyway too low to make it worth.)
-
+![](../plots/png/5_3_require_tools_ind_1.png)
 
 
 ## 5.4	Years of Experience

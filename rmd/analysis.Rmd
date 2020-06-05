@@ -2503,7 +2503,10 @@ df_en %>%
   mutate(n_tools = sum(str_detect(description, tools))) %>% 
   count(n_tools) %>% 
   ggplot(aes(n_tools, n)) +
-    geom_col(fill = bl_col, width = .8) +
+    geom_col(
+      fill = bl_col, 
+      width = .8
+    ) +
     geom_text(
       aes(label = n),
       family = "Montserrat",
@@ -2537,6 +2540,54 @@ if(save == T){
          width = 12, height = 8, device = cairo_pdf) 
 }
 ```
+
+```{r}
+df_en_tools <- colSums(sapply(tools, function(x,y) str_count(y, x), df_en$description ))
+
+df_en_tools %>% 
+  as.list %>% 
+  as_tibble %>% 
+  pivot_longer(
+    cols = everything(), 
+    names_to = "tool", 
+    values_to = "count"
+  ) %>% 
+  #arrange(-count) %>% 
+  filter(count > 4) %>% 
+  mutate(
+    tool = str_to_title(tool),
+    tool = fct_reorder(tool, count)
+  ) %>% 
+  ggplot(aes(count, tool)) +
+    geom_col(
+      orientation = "y",
+      fill = bl_col, 
+      width = .8
+    ) +
+    geom_text(
+      aes(label = count),
+      nudge_x = 18,
+      family = "Overpass Mono",
+      color = bl_col,
+      fontface = "bold"
+    ) +
+    scale_x_continuous(
+      expand = c(.001, .001),
+      breaks = seq(0, 800, by = 200),
+      limits = c(0, 950)
+    ) +
+    labs(
+      x = "Number of mentions",
+      y = NULL,
+      caption = 'Note: Only tools with a frequency of 5 or more shown.' 
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_3_require_tools_ind.pdf"), 
+         width = 12, height = 8, device = cairo_pdf) 
+}
+```
+
 
 
 ## 5.4	Years of Experience

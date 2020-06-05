@@ -1761,7 +1761,10 @@ df_gd %>%
       x = "Rating range", 
       y = "Number of companies"
     ) +
-    theme(panel.grid.major.x = element_blank())
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank()
+    )
 
 if(save == T){ 
   ggsave(here::here("plots", "3_4_rating_histo.pdf"), 
@@ -1941,8 +1944,8 @@ if(save == T){
 df_size_edu <-
   df_size %>%
   mutate(
-    bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|bachelor"), 1, 0),
-    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|master"), 1, 0),
+    bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|\\bbachelor\\b"), 1, 0),
+    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|[(to|will)]\\s\\bmaster\\b"), 1, 0),
     doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
   ) %>% 
   dplyr::select(size, bachelors, masters, doctorate) %>% 
@@ -1975,7 +1978,7 @@ df_size_edu %>%
     ) +
     scale_y_continuous(
       expand = c(0, 0),
-      limits = c(0, 42)
+      limits = c(0, 310)
     ) +
     labs(
       x = NULL,
@@ -1992,8 +1995,8 @@ if(save == T){
 }
 ```
 
-Bachelors: 38
-Masters: 10
+Bachelors: 311
+Masters: 236
 Doctorate: 1
 
 
@@ -2013,8 +2016,9 @@ df_size_edu %>%
     geom_col(width = .8) +
     scale_y_continuous(
       expand = c(0, 0),
-      limits = c(0, .031),
-      labels = scales::percent_format()
+      limits = c(0, .28),
+      breaks = seq(0, .25, by = .05),
+      labels = scales::percent_format(accuracy = 1)
     ) +
     scale_fill_manual(
       values = cols_degree, 
@@ -2073,8 +2077,9 @@ ggplot(df_rev_edu,
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   scale_y_continuous(
     expand = c(.0005, .0005),
-    limits = c(0, .031),
-    labels = scales::percent_format()
+    limits = c(0, .28),
+    breaks = seq(0, .25, by = .05),
+    labels = scales::percent_format(accuracy = 1)
   ) +
   scale_fill_manual(
     values = cols_degree, 
@@ -2103,8 +2108,9 @@ ggplot(df_rev_edu,
   geom_col(width = .8) +
   scale_y_continuous(
     expand = c(.0005, .0005),
-    limits = c(0, .031),
-    labels = scales::percent_format()
+    limits = c(0, .28),
+    breaks = seq(0, .25, by = .05),
+    labels = scales::percent_format(accuracy = 1)
   ) +
   scale_fill_manual(
     values = cols_degree, 
@@ -2131,8 +2137,9 @@ ggplot(df_rev_edu, aes(revenue, rel,
   geom_col(width = .8) +
   scale_y_continuous(
     expand = c(.0005, .0005),
-    limits = c(0, .031),
-    labels = scales::percent_format()
+    limits = c(0, .28),
+    breaks = seq(0, .25, by = .05),
+    labels = scales::percent_format(accuracy = 1)
   ) +
   scale_fill_manual(
     values = cols_degree, 
@@ -2509,7 +2516,7 @@ df_en %>%
     ) +
     geom_text(
       aes(label = n),
-      family = "Montserrat",
+      family = "Overpass Mono",
       color = bl_col,
       fontface = "bold",
       size = 4,

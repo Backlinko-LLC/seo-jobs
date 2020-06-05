@@ -228,15 +228,15 @@ Consecutive sequences of words (*ngrams*) in the job desciptions do not bring an
 
 We extracted from the job descriptions the required/desired degree:
 
-* Bachelors ~ `B.Ba.|B.Sc.|BBa|BSc|BBA|BSC|Bachelors`
-* Masters ~ `M.Ba.|M.Sc.|MBa|MSc|MBA|MSC|Masters`
-* Doctorates ~ `Ph.D.|PhD|Doctorate`
+* Bachelors ~ `b.ba.|b.sc.|bba|bsc|\\bbachelor\\b`
+* Masters ~ `"m.ba.|m.sc.|mba|msc|[(to|will)]\\s\\bmaster\\b`
+* Doctorates ~ `ph.d.|phd|doctora`
 
 #### What type of degrees are most often required (Bachelor vs Master vs Doctorate)?
 
 ![](../plots/png/5_1_require_edu_histo_1.png)
 
-In total we found 39 positions mentioning Bachelors, 10 Masters and only one belonging to the Doctorate category.
+In total we found 311 positions mentioning Bachelors, 87 Masters and only one belonging to the Doctorate category.
 
 
 #### Do larger companies require a formal education?
@@ -246,8 +246,7 @@ In total we found 39 positions mentioning Bachelors, 10 Masters and only one bel
 
 #### Which education level is required by high-revenue companies?
 
--> I've added this since it's a low hanging fruit after the last section ;)  
--> 3 different versions to deal with poverplotting of the x-axis labels
+-> 3 different versions to deal with overplotting of the x-axis labels
 
 ![](../plots/png/5_1_require_edu_revenue_dodge_1.png)
 

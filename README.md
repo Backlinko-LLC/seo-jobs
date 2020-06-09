@@ -228,9 +228,12 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 
 ## 5.3	Knowledge of Popular Tools
 
-#### What tools are most often required?
+#### How often is the knowledge of tools required?
 
 ![](./plots/png/5_3_require_tools_1.png)
+
+
+#### What tools are most often required?
 
 ![](./plots/png/5_3_require_tools_ind_1.png)
 

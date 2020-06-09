@@ -2708,7 +2708,7 @@ df_en %>%
       width = .9
     ) +
     scale_x_continuous(
-      breaks = c(1:7, 10, 23,),
+      breaks = c(1:7, 10, 23),
       expand = c(.01, .01)
     ) +
     scale_y_continuous(

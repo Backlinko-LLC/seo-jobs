@@ -1175,11 +1175,16 @@ if(save == T){
 df_states_join <-
   df_loc_en %>% 
   mutate(location = str_replace(location, ", United States|, US", "")) %>% 
-  mutate(state_mixed = str_extract(location, "[^, ]*$")) 
+  mutate(state_mixed = str_extract(location, "[^, ]*$")) %>% 
+  left_join(df_states, by = c("state_mixed" = "ISO2")) %>%
+  mutate(
+    state = if_else(is.na(state), state_mixed, state),
+    state = if_else(state == "District of Colombia", "District of Columbia", state)
+  )
 
 sf_states_count <-
   sf_states %>% 
-  left_join(df_states_join, by = c("iso_3166_2" = "state_mixed")) %>%
+  left_join(df_states_join, by = c("name" = "state")) %>%
   filter(!is.na(geo_id)) %>% 
   group_by(name) %>% 
   summarize(n = sum(n, na.rm = T)) %>% 
@@ -1262,7 +1267,7 @@ df_states_join <-
   left_join(df_states, by = c("state_mixed" = "ISO2")) %>%
   mutate(state = if_else(is.na(state), state_mixed, state)) %>% 
   group_by(state) %>% 
-  summarize(n = sum(n, na.rm = T)) %>% 
+  summarize(n = sum(n)) %>% 
   ungroup()
 
 ## hex map

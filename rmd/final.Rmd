@@ -300,7 +300,7 @@ Still not sure how to approach that in a better way. For now I have filtered the
 * `experience [0-9]+ year`
 * `experience of [0-9]+ year`
 
-Note: I checked some manually, especially the high values. An experience of 23+ years is really required by two job positions, but one with 30 years experience was a mistake that was likely to occur—it was part of the employer description: "the language recruitment specialist with over 30 years".
+Note: I checked some manually, especially the high values. An experience of 23+ years is really required by two job positions, but one with 30 years experience was a mistake that was likely to occur—it was part of the employer description: "the language recruitment specialist with over 30 years experience" and was thus removed.
 
 ![](../plots/png/5_4_require_experience_1.png)
 

@@ -2431,7 +2431,6 @@ if(save == T){
 
 ## 5.3	Knowledge of Popular Tools
 
-* What tools are most often required?
 
 ```{r list-tools}
 tools <- str_to_lower(c(
@@ -2586,6 +2585,9 @@ tools <- str_to_lower(c(
 ))
 ```
 
+
+* How often is the knowledge of tools required?
+
 ```{r 5-3-requirement-tools, fig.width = 12, fig.height = 7}
 df_en %>% 
   rowwise() %>% 
@@ -2629,6 +2631,9 @@ if(save == T){
          width = 12, height = 8, device = cairo_pdf) 
 }
 ```
+
+
+* What tools are most often required?
 
 ```{r require-tools-counts, fig.width = 12, fig.height = 7}
 df_en_clean <- df_en %>% filter(!is.na(description))

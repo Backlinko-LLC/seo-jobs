@@ -39,4 +39,4 @@ vignettes/*.pdf
 .Renviron
 
 # Ignore large data files
-*raw_data/Linkedin.csv
+/raw_data/Linkedin*

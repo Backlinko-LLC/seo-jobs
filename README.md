@@ -2,26 +2,80 @@
 
 by Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)
 
+---
+title: "SEO Jobs Analysis"
+author: "Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: paper
+    highlight: kate
+    code_folding: hide
+    toc_depth: 3
+    toc_float: true
+editor_options:
+  chunk_output_type: console
+---
+
+<style>
+.list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
+  background-color: #00d188;
+  border-color: #00d188;
+}
+
+body {
+  font-family: montserrat;
+  color: #444444;
+  font-size: 14px;
+}
+
+h1 {
+  font-weight: bold;
+  font-size: 28px;
+}
+
+h1.title {
+  font-size: 30px;
+  color: #00d188;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 18px;
+}
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.showtext = TRUE)
+
+knitr::knit_hooks$set(inline = function(x) {
+  prettyNum(x, big.mark = ",", small.mark = ",", scientific = F)
+})
+```
+
 
 # 0. Introduction
 
 We use two data sets:
 
-* Glassdoor data (original) with 908 observations
-* LinkedIn data (original) with 62,095 observations
-  - subset for "SEO": with 2,387 observations
-  - subset for "SEO" and English-speaking offers: with 603 observations
+* Glassdoor data (original) with 2,651 observations
+* LinkedIn data (original) with 144,519 observations
+  - subset for "SEO": with 5,856 observations
+  - subset for "SEO" and English-speaking offers: with 984 observations
 
-The LinkedIn data contain global job offers while the GlassDoor data only jobs from the US. The LinkedIn data including only job offers with the term `SEO` (or `seo`) contain 2,387 observations from English-speaking countries (USA, Canada, UK, Australia, Ireland, South Africa) and 552 from the USA and the UK (links starting with `www.linkedin.com`).
+The LinkedIn data contain global job offers while the GlassDoor data only jobs from the US. The LinkedIn data including only job offers with the term `SEO` (or `seo`) contain 5,856 offers overall, 984 offers from English-speaking countries (USA, Canada, UK, Ireland, Australia, South Africa) and 862 from the USA and the UK (links starting with `www.linkedin.com`).
 
-We merged both data sets and kept as many variables as possible, manually creating new variables for both datasets (GlassDoor: `seniority` and `employment type`; LinkedIn: `sector`) based on text matching of job titles and descriptions. We also removed as many duplictaed entries as possible by matching job title, employer and job location. The final worldwide data set contains 3,127 observations.
+We merged both data sets and kept as many variables as possible, manually creating new variables for both datasets (GlassDoor: `seniority` and `employment type`; LinkedIn: `sector`) based on text matching of job titles and descriptions. We also removed as many duplictaed entries as possible by matching job title, employer and job location. The final worldwide data set contains 7,051 observations.
 
-Because the job offers are collected from all over the world, a lot of foreign terms are included. Thus, we merged the GlassDoor data also with the English subset of the LinkedIn data and kept again as many variables as possible by manually creating new variables for both data sets. The final "All English" data set contains 1,344 observations.
+Because the job offers are collected from all over the world, a lot of foreign terms are included. Thus, we merged the GlassDoor data also with the English subset of the LinkedIn data and kept again as many variables as possible by manually creating new variables for both data sets. The final "All English" data set contains 2,569 observations.
 
 The GlassDoor data are cleaner with regard to job titles and description than the LinkedIn data. Consequently, some plots using the GlassDoor data do a better job so we provide for now both version (the merged "All English" data set and the GlassDoor data set).
 
 Also, the GlassDoor data contain information that are missing from the LinkedIn data such as `estimated salary range`, `rating`, `employer`, `industry`, and `size (no. of employees)`.
-
 
 
 
@@ -64,13 +118,13 @@ The modified stacked bar plot shows the number of words found per job category a
 
 ## 2.1 Hot Spots: Cities (Bubble Map)
 
+**There are problems with the new data, I was not able to retreive the geocodes. So the maps based on exact locations (bubble maps) are based on the old set of locations (i.e. updated nubmers for locations contained in the first dataset but no potentially new locations added).**
+
 ![](./plots/png/2_1_map_northamerica_cities_1.png)
 
 ![](./plots/png/2_1_map_states_cities_1.png)
 
 ![](./plots/png/2_1_bars_cities_1.png)
-
-![](./plots/png/2_1_bars_cities_10+_1.png)
 
 
 ## 2.2 Hot Spots by States
@@ -125,7 +179,7 @@ CED: What do we define as "more specialized tasks"?
 
 #### What type of skill sets are required by high-revenue companies?
 
-I tokenized the description and removed stop words and numbers as well as manually non-sense/non-skill-related words. There might be more but if we keep it we can have a closer look I would say.
+I tokenized the description and removed stop words and numbers as well as manually non-sense/non-skill-related words. There might be more but if we keep it we can have a closer look I would say. The wordclouds show the 75 most common words per group.
 
 
 ![](./plots/png/3_2_revenue_words_vertical_1.png)
@@ -165,7 +219,14 @@ I tokenized the description and removed stop words and numbers as well as manual
 
 This is a simple wordcloud of words mentioned in the job descriptions with a frequency of 10 or more. That way, we can scan through the list and select those that are of interest.
 
+Words that occured at least 100 times:
+
 ![](./plots/png/4_cloud_word_1.png)
+
+Words that occured at least 1000 times:
+
+![](./plots/png/4_cloud_word_1000_1.png)
+
 
 Consecutive sequences of words (*ngrams*) in the job desciptions do not bring any insightful, a lot of phrasings and fill words.
 
@@ -177,15 +238,15 @@ Consecutive sequences of words (*ngrams*) in the job desciptions do not bring an
 
 We extracted from the job descriptions the required/desired degree:
 
-* Bachelors ~ `B.Ba.|B.Sc.|BBa|BSc|BBA|BSC|Bachelors`
-* Masters ~ `M.Ba.|M.Sc.|MBa|MSc|MBA|MSC|Masters`
-* Doctorates ~ `Ph.D.|PhD|Doctorate`
+* Bachelors ~ `b.ba.|b.sc.|bba|bsc|\\bbachelor\\b`
+* Masters ~ `"m.ba.|m.sc.|mba|msc|[(to|will)]\\s\\bmaster\\b`
+* Doctorates ~ `ph.d.|phd|doctora`
 
 #### What type of degrees are most often required (Bachelor vs Master vs Doctorate)?
 
 ![](./plots/png/5_1_require_edu_histo_1.png)
 
-In total we found 39 positions mentioning Bachelors, 10 Masters and only one belonging to the Doctorate category.
+In total we found 792 positions mentioning Bachelors, 204 Masters and only 11 belonging to the Doctorate category (out of 2,651 job offer descriptions).
 
 
 #### Do larger companies require a formal education?
@@ -195,8 +256,7 @@ In total we found 39 positions mentioning Bachelors, 10 Masters and only one bel
 
 #### Which education level is required by high-revenue companies?
 
--> I've added this since it's a low hanging fruit after the last section ;)  
--> 3 different versions to deal with poverplotting of the x-axis labels
+-> 3 different versions to deal with overplotting of the x-axis labels
 
 ![](./plots/png/5_1_require_edu_revenue_dodge_1.png)
 
@@ -241,6 +301,8 @@ Still not sure how to approach that in a better way. For now I have filtered the
 * `experience: [0-9]+ year`
 * `experience [0-9]+ year`
 * `experience of [0-9]+ year`
+
+Note: I checked some manually, especially the high values. An experience of 23+ years is really required by two job positions, but one with 30 years experience was a mistake that was likely to occur—it was part of the employer description: "the language recruitment specialist with over 30 years".
 
 ![](./plots/png/5_4_require_experience_1.png)
 

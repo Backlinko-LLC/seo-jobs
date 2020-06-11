@@ -3414,7 +3414,7 @@ df_dates %>%
     labs(
       x = "Week posted in 2020",
       y = "Number of job offers on LinkedIn.com",
-      caption = "Note: In week 9 (end of February 2020) the number of confirmed COID-19 infections reached 100 in the US and the bars are thus colored pink afterwards.\nEach bar shows only US job posting on LinkedIn."
+      caption = "Note: In week 9 (end of February 2020) the number of confirmed COID-19 infections reached 100 in the US and the bars are thus colored pink afterwards.\nEach bar shows only US job postings on LinkedIn."
     ) +
     theme(
       axis.text.x = element_text(size = 10),

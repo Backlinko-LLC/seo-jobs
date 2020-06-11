@@ -1170,8 +1170,14 @@ if(save == T){
 
 (This map is derived from spatial locations by intersecting cities with state polygons - thus slightly different numbers compared to the hexagonal grid map which uses states as stated by the source.)
 
-
 ```{r 2-3-map-states-chloropleth-source, fig.width = 15, fig.height = 9.7}
+## data by states
+df_states <-
+  readr::read_csv(here::here("raw_data", "50_us_states_world_data.csv"), 
+                  col_names = F) %>% 
+  dplyr::select(state = "X2", ISO2 = "X3")%>% 
+  add_row(state = "District of Colombia", ISO2 = "DC")
+
 df_states_join <-
   df_loc_en %>% 
   mutate(location = str_replace(location, ", United States|, US", "")) %>% 
@@ -1253,13 +1259,6 @@ if(save == T){
 #### Hex Map
 
 ```{r 2-2-map-states-hex-prep}
-## data by states
-df_states <-
-  readr::read_csv(here::here("raw_data", "50_us_states_world_data.csv"), 
-                  col_names = F) %>% 
-  dplyr::select(state = "X2", ISO2 = "X3")%>% 
-  add_row(state = "District of Colombia", ISO2 = "DC")
-
 df_states_join <-
   df_loc_en %>% 
   mutate(location = str_replace(location, ", United States|, US", "")) %>% 

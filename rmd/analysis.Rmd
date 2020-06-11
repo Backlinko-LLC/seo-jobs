@@ -2087,14 +2087,42 @@ if(save == T){
 ```{r 5-1-requirement-education-size, fig.width = 12, fig.height = 7.5}
 df_size_edu %>% 
   group_by(size, education) %>% 
+  summarize(n = sum(yes_no, na.rm = T)) %>% 
+  ungroup() %>% 
+  ggplot(aes(size, n, 
+             fill = education)) +
+    geom_col(width = .8) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, 210),
+      breaks = seq(0, 200, by = 25)
+    ) +
+    scale_fill_manual(
+      values = cols_degree, 
+      name = "Required degree:"
+    ) +
+    guides(fill = guide_legend(reverse = T)) +
+    theme(
+      legend.text = element_text(size = 14),
+      panel.grid.major.x = element_blank()
+    ) +
+    labs(
+      x = "Number of employees", 
+      y = "Number of job offers"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_size_n.pdf"), 
+         width = 12, height = 7.5, device = cairo_pdf) 
+}
+
+
+df_size_edu %>% 
+  group_by(size, education) %>% 
   summarize(rel = sum(yes_no, na.rm = T) / unique(total)) %>% 
   ungroup() %>% 
-  ggplot(
-    aes(
-      size, rel, 
-      fill = education
-    )
-    ) +
+  ggplot(aes(size, rel, 
+             fill = education)) +
     geom_col(width = .8) +
     scale_y_continuous(
       expand = c(0, 0),
@@ -2113,11 +2141,46 @@ df_size_edu %>%
     ) +
     labs(
       x = "Number of employees", 
-      y = "Percentage"
+      y = "Percentage of all job offers"
     )
 
 if(save == T){ 
-  ggsave(here::here("plots", "5_1_require_edu_size.pdf"), 
+  ggsave(here::here("plots", "5_1_require_edu_size_rel.pdf"), 
+         width = 12, height = 7.5, device = cairo_pdf) 
+}
+
+df_size_edu %>% 
+  filter(yes_no == 1) %>% 
+  group_by(size) %>% 
+  mutate(total = n()) %>% 
+  group_by(size, education) %>% 
+  summarize(rel = sum(yes_no, na.rm = T) / unique(total)) %>% 
+  ungroup() %>% 
+  ggplot(aes(size, rel, 
+         fill = education)) +
+    geom_col(width = .8) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, 1),
+      breaks = seq(0, 1, by = .2),
+      labels = scales::percent_format(accuracy = 1)
+    ) +
+    scale_fill_manual(
+      values = cols_degree, 
+      name = "Required degree:"
+    ) +
+    guides(fill = guide_legend(reverse = T)) +
+    theme(
+      legend.text = element_text(size = 14),
+      panel.grid.major.x = element_blank()
+    ) +
+    labs(
+      x = "Number of employees", 
+      y = "Percentage of all job offers requiring an education"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_size_100.pdf"), 
          width = 12, height = 7.5, device = cairo_pdf) 
 }
 ```
@@ -2151,10 +2214,8 @@ df_rev_edu <-
   ungroup()
 
 ggplot(df_rev_edu, 
-  aes(
-    revenue, rel, 
-    fill = education)
-  ) +
+       aes(revenue, rel, 
+       fill = education)) +
   geom_col(width = .8) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   scale_y_continuous(
@@ -2174,7 +2235,7 @@ ggplot(df_rev_edu,
   ) +
   labs(
     x = "Estimated revenue", 
-    y = "Percentage"
+    y = "Percentage of all job offers"
   )
 
 if(save == T){ 
@@ -2183,10 +2244,8 @@ if(save == T){
 }
 
 ggplot(df_rev_edu, 
-  aes(
-   revenue, rel, 
-   fill = education
-  )) +
+       aes(revenue, rel, 
+           fill = education)) +
   geom_col(width = .8) +
   scale_y_continuous(
     expand = c(.0005, .0005),
@@ -2206,7 +2265,7 @@ ggplot(df_rev_edu,
   ) +
   labs(
     x = "Estimated revenue", 
-    y = "Percentage"
+    y = "Percentage of all job offers"
   )
 
 if(save == T){ 
@@ -2214,8 +2273,9 @@ if(save == T){
          width = 12, height = 6.5, device = cairo_pdf) 
 }
 
-ggplot(df_rev_edu, aes(revenue, rel, 
-                   fill = education)) +
+ggplot(df_rev_edu, 
+       aes(revenue, rel, 
+       fill = education)) +
   geom_col(width = .8) +
   scale_y_continuous(
     expand = c(.0005, .0005),
@@ -2235,11 +2295,125 @@ ggplot(df_rev_edu, aes(revenue, rel,
   ) +
   labs(
     x = "Estimated revenue", 
-    y = "Percentage"
+    y = "Percentage of all job offers"
   )
 
 if(save == T){ 
   ggsave(here::here("plots", "5_1_require_edu_revenue_angle.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+```
+
+
+```{r}
+df_rev_edu_n <-
+  df_revenue %>% 
+  mutate(
+    bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|bachelor"), 1, 0),
+    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|master"), 1, 0),
+    doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
+  ) %>% 
+  dplyr::select(revenue, bachelors, masters, doctorate) %>% 
+  pivot_longer(
+    cols = c(bachelors, masters, doctorate),
+    names_to = "education",
+    values_to = "yes_no"
+  ) %>%
+  filter(yes_no == 1) %>% 
+  group_by(revenue) %>% 
+  mutate(
+    education = str_to_title(education),
+    education = factor(education, levels = c("Doctorate", "Masters", "Bachelors"))
+  ) %>% 
+  group_by(revenue, education) %>% 
+  summarize(n = sum(yes_no)) %>% 
+  ungroup()
+
+ggplot(df_rev_edu_n, 
+       aes(revenue, n, 
+           fill = education)) +
+  geom_col(width = .8) +
+  scale_x_discrete() +
+  scale_y_continuous(
+    expand = c(.0005, .0005),
+    limits = c(0, 820),
+    breaks = seq(0, 800, by = 100)
+  ) +
+  scale_fill_manual(
+    values = cols_degree, 
+    name = "Required degree:"
+  ) +
+  guides(fill = guide_legend(reverse = T)) +
+  theme(
+    legend.text = element_text(size = 14),
+    panel.grid.major.x = element_blank(),
+    axis.text.x = element_text(size = 9)
+  ) +
+  labs(
+    x = "Estimated revenue", 
+    y = "Number of job offers"
+  )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_revenue_n_small.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+```
+
+
+```{r}
+df_rev_edu_100 <-
+  df_revenue %>% 
+  mutate(
+    bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|bachelor"), 1, 0),
+    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|master"), 1, 0),
+    doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
+  ) %>% 
+  dplyr::select(revenue, bachelors, masters, doctorate) %>% 
+  pivot_longer(
+    cols = c(bachelors, masters, doctorate),
+    names_to = "education",
+    values_to = "yes_no"
+  ) %>%
+  filter(yes_no == 1) %>% 
+  group_by(revenue) %>% 
+  mutate(
+    total = n(),
+    education = str_to_title(education),
+    education = factor(education, levels = c("Doctorate", "Masters", "Bachelors"))
+  ) %>% 
+  group_by(revenue, education) %>% 
+  summarize(rel = sum(yes_no) / unique(total)) %>% 
+  ungroup()
+
+ggplot(df_rev_edu_100, 
+       aes(revenue, rel, 
+           fill = education)) +
+  geom_col(width = .8) +
+  scale_x_discrete() +
+  scale_y_continuous(
+    expand = c(.0005, .0005),
+    limits = c(0, 1),
+    breaks = seq(0, 1, by = .2),
+    labels = scales::percent_format(accuracy = 1)
+  ) +
+  scale_fill_manual(
+    values = cols_degree, 
+    name = "Required degree:"
+  ) +
+  guides(fill = guide_legend(reverse = T)) +
+  theme(
+    legend.text = element_text(size = 14),
+    panel.grid.major.x = element_blank(),
+    axis.text.x = element_text(size = 9)
+  ) +
+  labs(
+    x = "Estimated revenue", 
+    y = "Percentage of all job offers requiring an education"
+  )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_revenue_rel100_small.pdf"), 
          width = 12, height = 6.5, device = cairo_pdf) 
 }
 ```
@@ -3225,7 +3399,8 @@ df_dates %>%
       width = .85
     ) +
     scale_x_continuous(
-      breaks = 1:52,
+      breaks = 1:23,
+      labels = c("1\n(Jan 1)", "2", "3", "4", "5\n(Feb 1)", "6", "7", "8", "9\n(Mar 1)", "10", "11", "12", "13", "14\n(Apr 1)", "15", "16", "17", "18\n(May 1)", "19", "20", "21", "22", "23\n(Jun 1)"),
       expand = c(.01, .01)
     ) +
     scale_y_continuous(
@@ -3237,11 +3412,12 @@ df_dates %>%
       guide = F
     ) +
     labs(
-      x = "Week posted",
+      x = "Week posted in 2020",
       y = "Number of job offers on LinkedIn.com",
-      caption = "Note: In week 9 the number of confirmed COID-19 infections reached 100 in the US and the bars are thus colored pink afterwards. Each bar shows only US job posting on LinkedIn."
+      caption = "Note: In week 9 (end of February 2020) the number of confirmed COID-19 infections reached 100 in the US and the bars are thus colored pink afterwards.\nEach bar shows only US job posting on LinkedIn."
     ) +
     theme(
+      axis.text.x = element_text(size = 10),
       panel.grid.major.x = element_blank(),
       panel.grid.minor.x = element_blank()
     )

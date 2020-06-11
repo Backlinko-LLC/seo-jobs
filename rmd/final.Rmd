@@ -67,7 +67,7 @@ The LinkedIn data contain global job offers while the GlassDoor data only jobs f
 
 We merged both data sets and kept as many variables as possible, manually creating new variables for both datasets (GlassDoor: `seniority` and `employment type`; LinkedIn: `sector`) based on text matching of job titles and descriptions. We also removed as many duplictaed entries as possible by matching job title, employer and job location. The final worldwide data set contains 7,051 observations.
 
-Because the job offers are collected from all over the world, a lot of foreign terms are included. Thus, we merged the GlassDoor data also with the English subset of the LinkedIn data and kept again as many variables as possible by manually creating new variables for both data sets. The final "All English" data set contains 2,569 observations.
+Because the job offers are collected from all over the world, a lot of foreign terms are included. Thus, we merged the GlassDoor data also with the English subset of the LinkedIn data and kept again as many variables as possible by manually creating new variables for both data sets. **The final "All English" data set contains 2,569 observations.**
 
 The GlassDoor data are cleaner with regard to job titles and description than the LinkedIn data. Consequently, some plots using the GlassDoor data do a better job so we provide for now both version (the merged "All English" data set and the GlassDoor data set).
 
@@ -112,9 +112,10 @@ The modified stacked bar plot shows the number of words found per job category a
 
 # 2. Location
 
-## 2.1 Hot Spots: Cities (Bubble Map)
+**Note:** For now we focussed on the job offers from the US in terms of cities, states and counties. This decision was based on two reasons: First, we believe US data is of most interest; secondly, we center all our analyses on job offers from English-speaking countries only so a world map would be in contrast here. Of course, if you think it is valuable, we can also create a world map.
 
-**There are problems with the new data, I was not able to retreive the geocodes. So the maps based on exact locations (bubble maps) are based on the old set of locations (i.e. updated nubmers for locations contained in the first dataset but no potentially new locations added).**
+
+## 2.1 Hot Spots: Cities (Bubble Map)
 
 ![](../plots/png/2_1_map_northamerica_cities_1.png)
 
@@ -159,8 +160,6 @@ Below is a map based on the location information in the data so same numbers as 
 
 ####  (Do larger companies require more specialized tasks?)
 
-CED: What do we define as "more specialized tasks"?
-
 
 
 ## 3.2	Revenue
@@ -177,8 +176,6 @@ CED: What do we define as "more specialized tasks"?
 
 I tokenized the description and removed stop words and numbers as well as manually non-sense/non-skill-related words. There might be more but if we keep it we can have a closer look I would say. The wordclouds show the 75 most common words per group.
 
-
-![](../plots/png/3_2_revenue_words_vertical_1.png)
 
 ![](../plots/png/3_2_revenue_words_horizontal_1.png)
 
@@ -199,7 +196,8 @@ I tokenized the description and removed stop words and numbers as well as manual
 
 #### Do more low- or high-rated companies hire? 
 
--> Counts of unique companies per rating
+The following graphs show counts of unique companies per rating, first for each rating score found in the data (including 1 decimal place) and then as a histogram grouped into ranges of 1.
+
 
 ![](../plots/png/3_4_rating_lolli_1.png)
 
@@ -209,6 +207,9 @@ I tokenized the description and removed stop words and numbers as well as manual
 
 ![](../plots/png/3_4_rating_best_1.png)
 ![](../plots/png/3_4_rating_worst_1.png)
+
+**Note:** Since there were many companies with the highest rating of 5 (see plots before), we decided to modify the condtions asnd to remove companies with revenues below $10 million. There were anayway only seven companies with the lowest rating possible, so we did not apply any filtering in that case.
+
 
 
 # 4	Job Responsibilities
@@ -224,7 +225,7 @@ Words that occured at least 1000 times:
 ![](../plots/png/4_cloud_word_1000_1.png)
 
 
-Consecutive sequences of words (*ngrams*) in the job desciptions do not bring any insightful, a lot of phrasings and fill words.
+**Note:** Consecutive sequences of words (*ngrams*) in the job desciptions do not bring any insightful, a lot of phrasings and fill words.
 
 
 
@@ -247,19 +248,44 @@ In total we found 792 positions mentioning Bachelors, 204 Masters and only 11 be
 
 #### Do larger companies require a formal education?
 
-![](../plots/png/5_1_require_edu_size_1.png)
+**Note:** There are many ways one could look at those numbers: absolute, proportional across all job offers and proportional within all that list any educational requirement.
+
+
+A) Absolute nubmer of job offers requiring a qualification (but thus no information about the overall number of job offers - coult be added but would make most of the plot grey = no requirement...):
+
+![](../plots/png/5_1_require_edu_size_n_1.png)
+
+
+B) Proportional across all job offers (i.e. number of offers with [education] / sum(job offers)):
+
+![](../plots/png/5_1_require_edu_size_rel_1.png)
+
+C) Proportional of all job offers requiring a qualification (i.e. number of offers with [education] / sum(job offers with any education required)):
+
+![](../plots/png/5_1_require_edu_size_rel100_1.png)
 
 
 #### Which education level is required by high-revenue companies?
 
--> 3 different versions to deal with overplotting of the x-axis labels
+A) Absolute nubmer of job offers requiring a qualification (but thus no information about the overall number of job offers - coult be added but would make most of the plot grey = no requirement...):
 
-![](../plots/png/5_1_require_edu_revenue_dodge_1.png)
+![](../plots/png/5_1_require_edu_revenue_n_small_1.png)
 
-![](../plots/png/5_1_require_edu_revenue_small_1.png)
 
-![](../plots/png/5_1_require_edu_revenue_angle_1.png)
+B) Proportional across all job offers (i.e. number of offers with [education] / sum(job offers)):
 
+**Note:** For all these plots, we provide 3 different versions to deal with overplotting of the x-axis labels (could be applied to option A and/or C as well).
+
+![](../plots/png/5_1_require_edu_revenue_rel_small_1.png)
+
+![](../plots/png/5_1_require_edu_revenue_rel_dodge_1.png)
+
+![](../plots/png/5_1_require_edu_revenue_rel_angle_1.png)
+
+
+C) Proportional of all job offers requiring a qualification (i.e. number of offers with [education] / sum(job offers with any education required)):
+
+![](../plots/png/5_1_require_edu_revenue_rel100_small_1.png)
 
 
 ## 5.2 Programming Languages
@@ -279,6 +305,13 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 
 
 ## 5.3	Knowledge of Popular Tools
+
+We searched for given tool names within the description of the job offer. The following list of (popular) tools was used for the the analysis:
+
+`Bing Webmaster Tools`, `Botify`, `Bright Local`, `Browseo`, `Clusteric`, `ContentKing App`, `DareBoost`, `DeepCrawl`, `EasyRedir`, `Forecheck`, `Google Analytics`, `Google Mobile-Friendly Test`, `Google PageSpeed Insights`, `Google Search Console`, `Google XML Sitemaps`, `GTmetrix`, `HeadMasterSEO`, `LinkPatrol`, `Lipperhey`, `OnCrawl`, `Panguin Tool`, `Raven Tools`, `Screaming Frog`, `Seobility`, `Seomator`, `SERPmetrics`, `Siteliner`, `Topvisor`, `Varvy SEO Tool`, `Whitespark`, `Woorank`, `Yoast`, `Zadroweb`, `Answer The Public`, `ClearScope`, `Exploding Topics`, `FAQfox`, `Google Keyword Planner`, `Google Location`, `Google Trends`, `Gookey`, `GrepWords`, `HitTail`, `Imforsmb`, `iSpionage`, `Jaaxy`, `Keyword Eye`, `Keyword Revealer`, `Keyword Snatcher`, `Keyworddit`, `KeywordIn`, `Keywords Everywhere`, `KeywordSpy`, `KeywordTool.io`, `Kombinator`, `kwfinder`, `Long Tail Pro`, `Power Suggest Pro`, `QuestionDB`, `SanityCheck`, `SECockpit`, `Seed Keywords`, `SEMrush`, `SERPStat`, `SimilarWeb`, `Soovle`, `SpyFu`,
+`StoryBase`, `TermExplorer`, `TwinWord`, `UberSuggest`, `Webtexttool`, `Wondersearch`, `Wordstream's Free Keyword Tools`, `WordTracker`, `Wordtracker Scout`, `Advanced Web Ranking`, `Agency Analytics`, `AMZ Tracker`, `Authority Labs`, `GeoRanker`, `Microsite Masters`, `NightWatch`, `Pro Rank Tracker`, `Rank Ranger`, `Rival IQ`, `SE Ranking`, `Search Latte`, `Serpfox`, `SERPs.com`, `SERPWoo`, `Sistrix`, `WebCEO`, `WordTail`, `Animalz Revive`, `BuzzSumo`, `Can I Rank`, `ClickFlow`, `Google SERP Preview Tool`, `Keys4Up`, `LSIGraph`, `MarketMuse`, `MetaTags.io`, `nTopic`, `Positionly`, `Ryte`, `SEOptimer`, `TrendSpottr`, `Upcity`, `WordLift`, `Ahrefs`, `cognitiveSEO`, `Kerboo`, `Majestic`, `Moz`, `MozBar`, `SEO PowerSuite`, `SEOGadget`, `ShareMetric`,
+`URL Profiler`, `WebMeUp Backlink Tool`, `Morningfame`, `Social Blade`, `TubeBuddy`, `VidIQ`, `YTCockpit`, `AuthoritySpy`, `Buzzstream`, `DIBZ`, `disavow.it`, `Domain Hunter Plus`, `GroupHigh`, `HARO`, `JustReachOut`, `Linkbird`, `Linkody`, `Linkstant`, `MailShake`, `Muck Rack`, `Ninja`, `Ontolo`, `Pitchbox`, `Remove'em`, `Rmoov`, `ScrapeBox`, `Tableau`, `qlik`, `Power BI`
+
 
 #### How often is the knowledge of tools required?
 
@@ -363,6 +396,7 @@ Old job offers may not be scraped since they were filled already and removed fro
 
 ![](../plots/png/7_1_dates_weeks_2020_1.png)
 
+(The date in parenthesis indicates the week that covered the first of each month.)
 
 
 ## 7.2 Weekday of Posting

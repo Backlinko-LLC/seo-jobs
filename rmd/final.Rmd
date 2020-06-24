@@ -219,11 +219,13 @@ This is a simple wordcloud of words mentioned in the job descriptions with a fre
 Words that occured at least 100 times:
 
 ![](../plots/png/4_cloud_word_1.png)
+![](../plots/png/4_cloud_word_upper_1.png)
+
 
 Words that occured at least 1000 times:
 
 ![](../plots/png/4_cloud_word_1000_1.png)
-
+![](../plots/png/4_cloud_word_1000_upper_1.png)
 
 **Note:** Consecutive sequences of words (*ngrams*) in the job desciptions do not bring any insightful, a lot of phrasings and fill words.
 
@@ -242,6 +244,7 @@ We extracted from the job descriptions the required/desired degree:
 #### What type of degrees are most often required (Bachelor vs Master vs Doctorate)?
 
 ![](../plots/png/5_1_require_edu_histo_1.png)
+![](../plots/png/5_1_require_edu_histo_non_1.png)
 
 In total we found 792 positions mentioning Bachelors, 204 Masters and only 11 belonging to the Doctorate category (out of 2,651 job offer descriptions).
 
@@ -254,11 +257,12 @@ In total we found 792 positions mentioning Bachelors, 204 Masters and only 11 be
 A) Absolute nubmer of job offers requiring a qualification (but thus no information about the overall number of job offers - coult be added but would make most of the plot grey = no requirement...):
 
 ![](../plots/png/5_1_require_edu_size_n_1.png)
-
+![](../plots/png/5_1_require_edu_size_n_non_1.png)
 
 B) Proportional across all job offers (i.e. number of offers with [education] / sum(job offers)):
 
 ![](../plots/png/5_1_require_edu_size_rel_1.png)
+![](../plots/png/5_1_require_edu_size_rel_non_1.png)
 
 C) Proportional of all job offers requiring a qualification (i.e. number of offers with [education] / sum(job offers with any education required)):
 
@@ -270,6 +274,7 @@ C) Proportional of all job offers requiring a qualification (i.e. number of offe
 A) Absolute nubmer of job offers requiring a qualification (but thus no information about the overall number of job offers - coult be added but would make most of the plot grey = no requirement...):
 
 ![](../plots/png/5_1_require_edu_revenue_n_small_1.png)
+![](../plots/png/5_1_require_edu_revenue_n_non_small_1.png)
 
 
 B) Proportional across all job offers (i.e. number of offers with [education] / sum(job offers)):
@@ -282,6 +287,7 @@ B) Proportional across all job offers (i.e. number of offers with [education] / 
 
 ![](../plots/png/5_1_require_edu_revenue_rel_angle_1.png)
 
+![](../plots/png/5_1_require_edu_revenue_non_small_1.png)
 
 C) Proportional of all job offers requiring a qualification (i.e. number of offers with [education] / sum(job offers with any education required)):
 
@@ -308,14 +314,18 @@ JavaScript, HTML/CSS, SQL, Python, Java, Bash/Shell/PowerShell, C#, PHP, C++, Ty
 
 We searched for given tool names within the description of the job offer. The following list of (popular) tools was used for the the analysis:
 
-`Bing Webmaster Tools`, `Botify`, `Bright Local`, `Browseo`, `Clusteric`, `ContentKing App`, `DareBoost`, `DeepCrawl`, `EasyRedir`, `Forecheck`, `Google Analytics`, `Google Mobile-Friendly Test`, `Google PageSpeed Insights`, `Google Search Console`, `Google XML Sitemaps`, `GTmetrix`, `HeadMasterSEO`, `LinkPatrol`, `Lipperhey`, `OnCrawl`, `Panguin Tool`, `Raven Tools`, `Screaming Frog`, `Seobility`, `Seomator`, `SERPmetrics`, `Siteliner`, `Topvisor`, `Varvy SEO Tool`, `Whitespark`, `Woorank`, `Yoast`, `Zadroweb`, `Answer The Public`, `ClearScope`, `Exploding Topics`, `FAQfox`, `Google Keyword Planner`, `Google Location`, `Google Trends`, `Gookey`, `GrepWords`, `HitTail`, `Imforsmb`, `iSpionage`, `Jaaxy`, `Keyword Eye`, `Keyword Revealer`, `Keyword Snatcher`, `Keyworddit`, `KeywordIn`, `Keywords Everywhere`, `KeywordSpy`, `KeywordTool.io`, `Kombinator`, `kwfinder`, `Long Tail Pro`, `Power Suggest Pro`, `QuestionDB`, `SanityCheck`, `SECockpit`, `Seed Keywords`, `SEMrush`, `SERPStat`, `SimilarWeb`, `Soovle`, `SpyFu`,
+`Bing Webmaster Tools`, `Botify`, `Bright Local`, `Browseo`, `Clusteric`, `ContentKing App`, `DareBoost`, `DeepCrawl`, `EasyRedir`, `Forecheck`, `Google Analytics`, `Google Mobile-Friendly Test`, `Google PageSpeed Insights`, `Google Search Console`, `Google XML Sitemaps`, `GTmetrix`, `HeadMasterSEO`, `LinkPatrol`, `Lipperhey`, `OnCrawl`, `Panguin Tool`, `Raven Tools`, `Screaming Frog`, `Seobility`, `Seomator`, `SERPmetrics`, `Siteliner`, `Topvisor`, `Varvy SEO Tool`, `Whitespark`, `Woorank`, `Yoast`, `Zadroweb`, `Answer The Public`, `ClearScope`, `Exploding Topics`, `FAQfox`, `Google Keyword Planner`, `Google Location`, `Google Trends`, `Google Data Studio`, `Gookey`, `GrepWords`, `HitTail`, `Imforsmb`, `iSpionage`, `Jaaxy`, `Keyword Eye`, `Keyword Revealer`, `Keyword Snatcher`, `Keyworddit`, `KeywordIn`, `Keywords Everywhere`, `KeywordSpy`, `KeywordTool.io`, `Kombinator`, `kwfinder`, `Long Tail Pro`, `Power Suggest Pro`, `QuestionDB`, `SanityCheck`, `SECockpit`, `Seed Keywords`, `SEMrush`, `SERPStat`, `SimilarWeb`, `Soovle`, `SpyFu`,
 `StoryBase`, `TermExplorer`, `TwinWord`, `UberSuggest`, `Webtexttool`, `Wondersearch`, `Wordstream's Free Keyword Tools`, `WordTracker`, `Wordtracker Scout`, `Advanced Web Ranking`, `Agency Analytics`, `AMZ Tracker`, `Authority Labs`, `GeoRanker`, `Microsite Masters`, `NightWatch`, `Pro Rank Tracker`, `Rank Ranger`, `Rival IQ`, `SE Ranking`, `Search Latte`, `Serpfox`, `SERPs.com`, `SERPWoo`, `Sistrix`, `WebCEO`, `WordTail`, `Animalz Revive`, `BuzzSumo`, `Can I Rank`, `ClickFlow`, `Google SERP Preview Tool`, `Keys4Up`, `LSIGraph`, `MarketMuse`, `MetaTags.io`, `nTopic`, `Positionly`, `Ryte`, `SEOptimer`, `TrendSpottr`, `Upcity`, `WordLift`, `Ahrefs`, `cognitiveSEO`, `Kerboo`, `Majestic`, `Moz`, `MozBar`, `SEO PowerSuite`, `SEOGadget`, `ShareMetric`,
-`URL Profiler`, `WebMeUp Backlink Tool`, `Morningfame`, `Social Blade`, `TubeBuddy`, `VidIQ`, `YTCockpit`, `AuthoritySpy`, `Buzzstream`, `DIBZ`, `disavow.it`, `Domain Hunter Plus`, `GroupHigh`, `HARO`, `JustReachOut`, `Linkbird`, `Linkody`, `Linkstant`, `MailShake`, `Muck Rack`, `Ninja`, `Ontolo`, `Pitchbox`, `Remove'em`, `Rmoov`, `ScrapeBox`, `Tableau`, `qlik`, `Power BI`
+`URL Profiler`, `WebMeUp Backlink Tool`, `Morningfame`, `Social Blade`, `TubeBuddy`, `VidIQ`, `YTCockpit`, `AuthoritySpy`, `Buzzstream`, `DIBZ`, `disavow.it`, `Domain Hunter Plus`, `GroupHigh`, `HARO`, `JustReachOut`, `Linkbird`, `Linkody`, `Linkstant`, `MailShake`, `Muck Rack`, `Ninja Outreach`, `Ontolo`, `Pitchbox`, `Remove'em`, `Rmoov`, `ScrapeBox`, `Tableau`, `qlik`, `Power BI`
 
 
 #### How often is the knowledge of tools required?
 
 ![](../plots/png/5_3_require_tools_1.png)
+
+New version showing proportions none versus 1+:
+![](../plots/png/5_3_require_tools_perc_1.png)
+
 
 #### What tools are most often required?
 
@@ -337,6 +347,8 @@ Note: I checked some manually, especially the high values. An experience of 23+ 
 
 ![](../plots/png/5_4_require_experience_1.png)
 
+Only up to 10 years:
+![](../plots/png/5_4_require_experience_reduced_1.png)
 
 #### (What type of SEO jobs require +5 years experience?)
 
@@ -367,12 +379,22 @@ Given the low number of job offers where years of experience could be easily ext
 
 #### (What are the highest/lowest paying SEO positions?)
 
+We decided to skip this question (as we did with some others since there where too many for the first round). If you are iterested in this or any other additonal question, jsut let us know.
+
 
 ## 6.4	Salaries per job requirement
 
 #### Do positions with programming languages pay significantly more?
 
 ![](../plots/png/6_4_salary_req_prog_1.png)
+Average only:
+![](../plots/png/6_4_salary_req_prog_avg_1.png)
+
+Median only:
+![](../plots/png/6_4_salary_req_prog_med_1.png)
+
+Bars shwoing average and standard deviation:
+![](../plots/png/6_4_salary_req_prog_avg_bars_1.png)
 
 
 ## 6.5	Salaries per Company Rating
@@ -389,8 +411,11 @@ Given the low number of job offers where years of experience could be easily ext
 
 Old job offers may not be scraped since they were filled already and removed from/by LinkedIn?! I would not investigate anything with this data at all...
 
+All countries:
 ![](../plots/png/7_1_dates_weeks_all_1.png)
 
+Only English-speaking countries:
+![](../plots/png/7_1_dates_weeks_en_1.png)
 
 #### Did the number of job offers decline during the COVID-19 pandemic?
 

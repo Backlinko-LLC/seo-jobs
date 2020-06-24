@@ -2060,18 +2060,29 @@ df_size_edu <-
     masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|[(to|will)]\\s\\bmaster\\b"), 1, 0),
     doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
   ) %>% 
+  filter(!is.na(bachelors)) %>% 
+  mutate(
+    education = case_when(
+      bachelors + masters + doctorate == 0 ~ "none",
+      bachelors == 1 ~ "bachelors",
+      bachelors == 0 & masters == 1 ~ "masters",
+      bachelors + masters == 0 & doctorate == 1 ~ "doctorate"
+    )
+  ) %>% 
   dplyr::select(size, bachelors, masters, doctorate) %>% 
   pivot_longer(
     cols = c(bachelors, masters, doctorate),
     names_to = "education",
     values_to = "yes_no"
   ) %>%
+  filter(education != "none") %>% 
   group_by(size) %>% 
   mutate(
     total = n(),
     education = str_to_title(education),
     education = factor(education, levels = c("Doctorate", "Masters", "Bachelors"))
-  )
+  ) %>% 
+  ungroup()
 ```
 
 
@@ -2140,7 +2151,7 @@ df_size_edu %>%
     ) +
     scale_fill_manual(
       values = cols_degree, 
-      name = "Required degree:"
+      name = "Required minimum degree:"
     ) +
     guides(fill = guide_legend(reverse = T)) +
     theme(
@@ -2173,7 +2184,7 @@ df_size_edu %>%
     ) +
     scale_fill_manual(
       values = cols_degree, 
-      name = "Required degree:"
+      name = "Required minimum degree:"
     ) +
     guides(fill = guide_legend(reverse = T)) +
     theme(
@@ -2208,7 +2219,7 @@ df_size_edu %>%
     ) +
     scale_fill_manual(
       values = cols_degree, 
-      name = "Required degree:"
+      name = "Required minimum degree:"
     ) +
     guides(fill = guide_legend(reverse = T)) +
     theme(
@@ -2233,10 +2244,18 @@ if(save == T){
 df_rev_edu <-
   df_revenue %>% 
   mutate(
-        bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|bachelor"), 1, 0),
-    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|master"), 1, 0),
+    bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|\\bbachelor\\b"), 1, 0),
+    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|[(to|will)]\\s\\bmaster\\b"), 1, 0),
     doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
-
+  ) %>% 
+  filter(!is.na(bachelors)) %>% 
+  mutate(
+    education = case_when(
+      bachelors + masters + doctorate == 0 ~ "none",
+      bachelors == 1 ~ "bachelors",
+      bachelors == 0 & masters == 1 ~ "masters",
+      bachelors + masters == 0 & doctorate == 1 ~ "doctorate"
+    )
   ) %>% 
   dplyr::select(revenue, bachelors, masters, doctorate) %>% 
   pivot_longer(
@@ -2244,6 +2263,7 @@ df_rev_edu <-
     names_to = "education",
     values_to = "yes_no"
   ) %>%
+  filter(education != "none") %>% 
   group_by(revenue) %>% 
   mutate(
     total = n(),
@@ -2261,13 +2281,13 @@ ggplot(df_rev_edu,
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   scale_y_continuous(
     expand = c(.0005, .0005),
-    limits = c(0, .28),
+    limits = c(0, .265),
     breaks = seq(0, .25, by = .05),
     labels = scales::percent_format(accuracy = 1)
   ) +
   scale_fill_manual(
     values = cols_degree, 
-    name = "Required degree:"
+    name = "Required minimum degree:"
   ) +
   guides(fill = guide_legend(reverse = T)) +
   theme(
@@ -2290,13 +2310,13 @@ ggplot(df_rev_edu,
   geom_col(width = .8) +
   scale_y_continuous(
     expand = c(.0005, .0005),
-    limits = c(0, .28),
+    limits = c(0, .265),
     breaks = seq(0, .25, by = .05),
     labels = scales::percent_format(accuracy = 1)
   ) +
   scale_fill_manual(
     values = cols_degree, 
-    name = "Required degree:"
+    name = "Required minimum degree:"
   ) +
   guides(fill = guide_legend(reverse = T)) +
   theme(
@@ -2320,13 +2340,13 @@ ggplot(df_rev_edu,
   geom_col(width = .8) +
   scale_y_continuous(
     expand = c(.0005, .0005),
-    limits = c(0, .28),
+    limits = c(0, .265),
     breaks = seq(0, .25, by = .05),
     labels = scales::percent_format(accuracy = 1)
   ) +
   scale_fill_manual(
     values = cols_degree, 
-    name = "Required degree:"
+    name = "Required minimum degree:"
   ) +
   guides(fill = guide_legend(reverse = T)) +
   theme(
@@ -2347,12 +2367,21 @@ if(save == T){
 
 
 ```{r}
-df_rev_edu_n <-
+df_rev_edu_yes <-
   df_revenue %>% 
   mutate(
     bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|bachelor"), 1, 0),
     masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|master"), 1, 0),
     doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
+  ) %>% 
+  filter(!is.na(bachelors)) %>% 
+  mutate(
+    education = case_when(
+      bachelors + masters + doctorate == 0 ~ "none",
+      bachelors == 1 ~ "bachelors",
+      bachelors == 0 & masters == 1 ~ "masters",
+      bachelors + masters == 0 & doctorate == 1 ~ "doctorate"
+    )
   ) %>% 
   dplyr::select(revenue, bachelors, masters, doctorate) %>% 
   pivot_longer(
@@ -2360,40 +2389,43 @@ df_rev_edu_n <-
     names_to = "education",
     values_to = "yes_no"
   ) %>%
+  filter(education != "none") %>%
   filter(yes_no == 1) %>% 
   group_by(revenue) %>% 
   mutate(
+    total = n(),
     education = str_to_title(education),
     education = factor(education, levels = c("Doctorate", "Masters", "Bachelors"))
   ) %>% 
-  group_by(revenue, education) %>% 
-  summarize(n = sum(yes_no)) %>% 
   ungroup()
 
-ggplot(df_rev_edu_n, 
-       aes(revenue, n, 
-           fill = education)) +
-  geom_col(width = .8) +
-  scale_x_discrete() +
-  scale_y_continuous(
-    expand = c(.0005, .0005),
-    limits = c(0, 820),
-    breaks = seq(0, 800, by = 100)
-  ) +
-  scale_fill_manual(
-    values = cols_degree, 
-    name = "Required degree:"
-  ) +
-  guides(fill = guide_legend(reverse = T)) +
-  theme(
-    legend.text = element_text(size = 14),
-    panel.grid.major.x = element_blank(),
-    axis.text.x = element_text(size = 9)
-  ) +
-  labs(
-    x = "Estimated revenue", 
-    y = "Number of job offers"
-  )
+df_rev_edu_yes %>% 
+  group_by(revenue, education) %>% 
+  summarize(n = sum(yes_no)) %>% 
+  ungroup() %>% 
+  ggplot(aes(revenue, n, 
+             fill = education)) +
+    geom_col(width = .8) +
+    scale_x_discrete() +
+    scale_y_continuous(
+      expand = c(.0005, .0005),
+      limits = c(0, 820),
+      breaks = seq(0, 800, by = 100)
+    ) +
+    scale_fill_manual(
+      values = cols_degree, 
+      name = "Required minimum degree:"
+    ) +
+    guides(fill = guide_legend(reverse = T)) +
+    theme(
+      legend.text = element_text(size = 14),
+      panel.grid.major.x = element_blank(),
+      axis.text.x = element_text(size = 9)
+    ) +
+    labs(
+      x = "Estimated revenue", 
+      y = "Number of job offers"
+    )
 
 if(save == T){ 
   ggsave(here::here("plots", "5_1_require_edu_revenue_n_small.pdf"), 
@@ -2403,55 +2435,34 @@ if(save == T){
 
 
 ```{r}
-df_rev_edu_100 <-
-  df_revenue %>% 
-  mutate(
-    bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|bachelor"), 1, 0),
-    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|master"), 1, 0),
-    doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
-  ) %>% 
-  dplyr::select(revenue, bachelors, masters, doctorate) %>% 
-  pivot_longer(
-    cols = c(bachelors, masters, doctorate),
-    names_to = "education",
-    values_to = "yes_no"
-  ) %>%
-  filter(yes_no == 1) %>% 
-  group_by(revenue) %>% 
-  mutate(
-    total = n(),
-    education = str_to_title(education),
-    education = factor(education, levels = c("Doctorate", "Masters", "Bachelors"))
-  ) %>% 
+df_rev_edu_yes %>% 
   group_by(revenue, education) %>% 
   summarize(rel = sum(yes_no) / unique(total)) %>% 
-  ungroup()
-
-ggplot(df_rev_edu_100, 
-       aes(revenue, rel, 
-           fill = education)) +
-  geom_col(width = .8) +
-  scale_x_discrete() +
-  scale_y_continuous(
-    expand = c(.0005, .0005),
-    limits = c(0, 1),
-    breaks = seq(0, 1, by = .2),
-    labels = scales::percent_format(accuracy = 1)
-  ) +
-  scale_fill_manual(
-    values = cols_degree, 
-    name = "Required degree:"
-  ) +
-  guides(fill = guide_legend(reverse = T)) +
-  theme(
-    legend.text = element_text(size = 14),
-    panel.grid.major.x = element_blank(),
-    axis.text.x = element_text(size = 9)
-  ) +
-  labs(
-    x = "Estimated revenue", 
-    y = "Percentage of all job offers requiring an education"
-  )
+  ungroup() %>% 
+  ggplot(aes(revenue, rel, 
+             fill = education)) +
+    geom_col(width = .8) +
+    scale_x_discrete() +
+    scale_y_continuous(
+      expand = c(.0005, .0005),
+      limits = c(0, 1),
+      breaks = seq(0, 1, by = .2),
+      labels = scales::percent_format(accuracy = 1)
+    ) +
+    scale_fill_manual(
+      values = cols_degree, 
+      name = "Required minimum degree:"
+    ) +
+    guides(fill = guide_legend(reverse = T)) +
+    theme(
+      legend.text = element_text(size = 14),
+      panel.grid.major.x = element_blank(),
+      axis.text.x = element_text(size = 9)
+    ) +
+    labs(
+      x = "Estimated revenue", 
+      y = "Percentage of all job offers requiring an education"
+    )
 
 if(save == T){ 
   ggsave(here::here("plots", "5_1_require_edu_revenue_rel100_small.pdf"), 
@@ -2563,7 +2574,7 @@ df_size_edu_non %>%
     ) +
     scale_fill_manual(
       values = c("grey75", cols_degree), 
-      name = "Required degree:"
+      name = "Required minimum degree:"
     ) +
     guides(fill = guide_legend(reverse = T)) +
     theme(
@@ -2607,7 +2618,7 @@ df_size_edu_non %>%
     ) +
     scale_fill_manual(
       values = c("grey75", cols_degree), 
-      name = "Required degree:"
+      name = "Required minimum degree:"
     ) +
     guides(fill = guide_legend(reverse = T)) +
     theme(
@@ -2629,7 +2640,7 @@ if(save == T){
 * Which education level is required by high-revenue companies?
 
 ```{r 5-1-requirement-revenue-education-incl-none, fig.width = 12, fig.height = 7.5}
-df_rev_edu_non<-
+df_rev_edu_non <-
   df_revenue %>% 
   mutate(
     bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|bachelor"), 1, 0),
@@ -2682,7 +2693,7 @@ df_rev_edu_non %>%
     ) +
     scale_fill_manual(
       values = c("grey75", cols_degree), 
-      name = "Required degree:"
+      name = "Required minimum degree:"
     ) +
     guides(fill = guide_legend(reverse = T)) +
     theme(
@@ -2725,7 +2736,7 @@ df_rev_edu_non %>%
     ) +
     scale_fill_manual(
       values = c("grey75", cols_degree), 
-      name = "Required degree:"
+      name = "Required minimum degree:"
     ) +
     guides(fill = guide_legend(reverse = T)) +
     theme(
@@ -2769,7 +2780,7 @@ df_rev_edu_non %>%
     ) +
     scale_fill_manual(
       values = c("grey75", cols_degree), 
-      name = "Required degree:"
+      name = "Required minimum degree:"
     ) +
     guides(fill = guide_legend(reverse = T)) +
     theme(
@@ -2804,7 +2815,7 @@ df_rev_edu_non %>%
     ) +
     scale_fill_manual(
       values = c("grey75", cols_degree), 
-      name = "Required degree:"
+      name = "Required minimum degree:"
     ) +
     guides(fill = guide_legend(reverse = T)) +
     theme(

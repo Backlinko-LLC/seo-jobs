@@ -2067,7 +2067,10 @@ df_size_edu <-
       bachelors == 1 ~ "bachelors",
       bachelors == 0 & masters == 1 ~ "masters",
       bachelors + masters == 0 & doctorate == 1 ~ "doctorate"
-    )
+    ),
+    bachelors = if_else(education == "bachelors", 1, 0),
+    masters = if_else(education == "masters", 1, 0),
+    doctorate = if_else(education == "doctorate", 1, 0)
   ) %>% 
   dplyr::select(size, bachelors, masters, doctorate) %>% 
   pivot_longer(
@@ -2178,7 +2181,7 @@ df_size_edu %>%
     geom_col(width = .8) +
     scale_y_continuous(
       expand = c(0, 0),
-      limits = c(0, .28),
+      limits = c(0, .26),
       breaks = seq(0, .25, by = .05),
       labels = scales::percent_format(accuracy = 1)
     ) +
@@ -2255,7 +2258,10 @@ df_rev_edu <-
       bachelors == 1 ~ "bachelors",
       bachelors == 0 & masters == 1 ~ "masters",
       bachelors + masters == 0 & doctorate == 1 ~ "doctorate"
-    )
+    ),
+    bachelors = if_else(education == "bachelors", 1, 0),
+    masters = if_else(education == "masters", 1, 0),
+    doctorate = if_else(education == "doctorate", 1, 0)
   ) %>% 
   dplyr::select(revenue, bachelors, masters, doctorate) %>% 
   pivot_longer(
@@ -2281,8 +2287,8 @@ ggplot(df_rev_edu,
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   scale_y_continuous(
     expand = c(.0005, .0005),
-    limits = c(0, .265),
-    breaks = seq(0, .25, by = .05),
+    limits = c(0, .21),
+    breaks = seq(0, .2, by = .05),
     labels = scales::percent_format(accuracy = 1)
   ) +
   scale_fill_manual(
@@ -2310,8 +2316,8 @@ ggplot(df_rev_edu,
   geom_col(width = .8) +
   scale_y_continuous(
     expand = c(.0005, .0005),
-    limits = c(0, .265),
-    breaks = seq(0, .25, by = .05),
+    limits = c(0, .21),
+    breaks = seq(0, .2, by = .05),
     labels = scales::percent_format(accuracy = 1)
   ) +
   scale_fill_manual(
@@ -2340,8 +2346,8 @@ ggplot(df_rev_edu,
   geom_col(width = .8) +
   scale_y_continuous(
     expand = c(.0005, .0005),
-    limits = c(0, .265),
-    breaks = seq(0, .25, by = .05),
+    limits = c(0, .21),
+    breaks = seq(0, .2, by = .05),
     labels = scales::percent_format(accuracy = 1)
   ) +
   scale_fill_manual(
@@ -2381,7 +2387,10 @@ df_rev_edu_yes <-
       bachelors == 1 ~ "bachelors",
       bachelors == 0 & masters == 1 ~ "masters",
       bachelors + masters == 0 & doctorate == 1 ~ "doctorate"
-    )
+    ),
+    bachelors = if_else(education == "bachelors", 1, 0),
+    masters = if_else(education == "masters", 1, 0),
+    doctorate = if_else(education == "doctorate", 1, 0)
   ) %>% 
   dplyr::select(revenue, bachelors, masters, doctorate) %>% 
   pivot_longer(
@@ -2409,8 +2418,8 @@ df_rev_edu_yes %>%
     scale_x_discrete() +
     scale_y_continuous(
       expand = c(.0005, .0005),
-      limits = c(0, 820),
-      breaks = seq(0, 800, by = 100)
+      limits = c(0, 720),
+      breaks = seq(0, 700, by = 100)
     ) +
     scale_fill_manual(
       values = cols_degree, 

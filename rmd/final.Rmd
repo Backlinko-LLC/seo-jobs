@@ -241,12 +241,17 @@ We extracted from the job descriptions the required/desired degree:
 * Masters ~ `"m.ba.|m.sc.|mba|msc|[(to|will)]\\s\\bmaster\\b`
 * Doctorates ~ `ph.d.|phd|doctora`
 
+In total we found 792 positions mentioning Bachelors, 204 Masters and only 11 belonging to the Doctorate category (out of 2,651 job offer descriptions). 
+
+Afterwards, we determined the minimimum degree required (Doctorate > Masters > Bachelors), yielding 792 Bachelors, 146 Masters and 7 Doctorates.
+
+
 #### What type of degrees are most often required (Bachelor vs Master vs Doctorate)?
 
 ![](../plots/png/5_1_require_edu_histo_1.png)
 ![](../plots/png/5_1_require_edu_histo_non_1.png)
 
-In total we found 792 positions mentioning Bachelors, 204 Masters and only 11 belonging to the Doctorate category (out of 2,651 job offer descriptions).
+
 
 
 #### Do larger companies require a formal education?

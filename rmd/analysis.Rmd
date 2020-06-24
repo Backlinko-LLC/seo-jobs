@@ -1575,8 +1575,8 @@ df_revenue %>%
       limits = c(0, 87)
     ) +
     labs(
-      x = "Number of employees", 
-      y = "Revenue"
+      x = "Revenue", 
+      y = "Count"
     ) +
     theme(
       panel.grid.major.x = element_blank(),
@@ -1925,32 +1925,73 @@ df_tasks_words <-
     !str_detect(word, "[0-9]+")
   )
 
-df_tasks_words %>% 
+w <- 
+  df_tasks_words %>% 
   filter(
     word != "seo",
     !str_detect(word, "e.g"),
     n >= 100
   ) %>% 
-  ggplot(
-    aes(
+  #mutate(word = str_to_upper(word)) %>% 
+  ggplot(aes(
       label = word, 
       size = n, 
       color = n
-    )
-    ) +
+    )) +
     geom_text_wordcloud(
       family = "Montserrat",
       fontface = "bold",
       #shape = "square",
       grid_margin = 3
     ) +
-    rcartocolor::scale_color_carto_c(palette = "ag_Sunset") +
-    scale_size_area(max_size = 25) +
+    scale_color_gradient2(
+      low = "grey60",
+      mid = bl_col,
+      high = darken(bl_col, .3, space = "HLS"),
+      midpoint = 5000,
+      guide = F
+    ) +
+    scale_size_area(max_size = 25) + ## 22 for upper case
     theme_minimal()
 
 if(save == T){ 
   ggsave(here::here("plots", "4_cloud_word.pdf"), 
          width = 30, height = 25, device = cairo_pdf) 
+}
+
+
+w <- 
+  df_tasks_words %>% 
+  filter(
+    word != "seo",
+    !str_detect(word, "e.g"),
+    n >= 1000
+  ) %>% 
+  #mutate(word = str_to_upper(word)) %>% 
+  ggplot(aes(
+      label = word, 
+      size = n, 
+      color = n
+    )) +
+    geom_text_wordcloud(
+      family = "Montserrat",
+      fontface = "bold",
+      #shape = "square",
+      grid_margin = 3
+    ) +
+    scale_color_gradient2(
+      low = "grey75",
+      mid = bl_col,
+      high = darken(bl_col, .3, space = "HLS"),
+      midpoint = 6000,
+      guide = F
+    ) +
+    scale_size_area(max_size = 18) +
+    theme_minimal()
+
+if(save == T){ 
+  ggsave(here::here("plots", "4_cloud_word_1000.pdf"), 
+         width = 17, height = 10, device = cairo_pdf) 
 }
 
 # df_tasks_sequ <- 
@@ -2044,19 +2085,20 @@ df_size_edu %>%
     geom_col(
       fill = bl_col, 
       color = after_scale(darken(bl_col, .4, space = "HLS")),
-      width = .8,
+      width = .75,
       size = 1
     ) +
     geom_text(
-      aes(label = glue::glue("{n} times required")),
+      aes(label = n),
       family = "Montserrat",
       color = bl_col,
       fontface = "bold",
       hjust = .5,
       nudge_y = 25,
-      size = 6
+      size = 7
     ) +
     coord_cartesian(clip = "off") +
+    scale_x_discrete(expand = c(.15, .15)) +
     scale_y_continuous(
       expand = c(0, 0),
       limits = c(0, 840)
@@ -2066,7 +2108,7 @@ df_size_edu %>%
       y = NULL
     ) +
     theme(
-      axis.text.x = element_text(size = 18),
+      axis.text.x = element_text(size = 22),
       axis.text.y = element_blank(),
       panel.grid.major.x = element_blank(),
       panel.grid.major.y = element_blank(),
@@ -2418,6 +2460,370 @@ if(save == T){
 ```
 
 
+#### incl. no requirement
+
+```{r data-prep-education-incl-none}
+df_size_edu_non <-
+  df_size %>%
+  mutate(
+    bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|\\bbachelor\\b"), 1, 0),
+    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|[(to|will)]\\s\\bmaster\\b"), 1, 0),
+    doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
+  ) %>% 
+  filter(!is.na(bachelors)) %>% 
+  dplyr::select(size, bachelors, masters, doctorate) %>% 
+  mutate(
+    education = case_when(
+      bachelors + masters + doctorate == 0 ~ "none",
+      bachelors == 1 ~ "bachelors",
+      bachelors == 0 & masters == 1 ~ "masters",
+      bachelors + masters == 0 & doctorate == 1 ~ "doctorate"
+    )
+  ) %>% 
+  group_by(size) %>% 
+  mutate(
+    total = n(),
+    education = str_to_title(education),
+    education = factor(education, levels = c("None", "Doctorate", "Masters", "Bachelors")),
+    col = if_else(education == "None", "1", "2")
+  ) %>% 
+  ungroup()
+```
+
+
+* What type of degrees are most often required (Bachelor vs Master vs Doctorate vs None)? 
+
+```{r 5-1-requirement-education-incl-none, fig.width = 12, fig.height = 7.5}
+df_size_edu_non %>% 
+  count(education, col) %>% 
+  #group_by(education, col) %>% 
+  #summarize(n = sum(yes_no, na.rm = T)) %>% 
+  ggplot(aes(
+      fct_rev(education), n,
+      fill = col
+    )) +
+    geom_col(
+      aes(color = after_scale(darken(fill, .4, space = "HLS"))), 
+      width = .75,
+      size = 1
+    ) +
+    geom_text(
+      aes(
+        label = n,
+        color = after_scale(darken(fill, .4, space = "HLS"))
+      ),
+      family = "Montserrat",
+      fontface = "bold",
+      hjust = .5,
+      nudge_y = 55,
+      size = 7
+    ) +
+    coord_cartesian(clip = "off") +
+    scale_x_discrete(expand = c(.15, .15)) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, 1800)
+    ) +
+    scale_fill_manual(
+      values = c("grey60", bl_col),
+      guide = F
+    ) +
+    labs(
+      x = NULL,
+      y = NULL
+    ) +
+    theme(
+      axis.text.x = element_text(size = 18),
+      axis.text.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      axis.line.y = element_blank()
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_histo_non.pdf"), 
+         width = 12, height = 7.5, device = cairo_pdf) 
+}
+```
+
+
+* Do larger companies require a formal education?
+
+```{r 5-1-requirement-education-size-incl-none, fig.width = 12, fig.height = 7.5}
+df_size_edu_non %>% 
+  count(size, education) %>% 
+  ggplot(aes(size, n, 
+             fill = education)) +
+    geom_col(width = .8) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, 745),
+      breaks = seq(0, 700, by = 100)
+    ) +
+    scale_fill_manual(
+      values = c("grey60", cols_degree), 
+      name = "Required degree:"
+    ) +
+    guides(fill = guide_legend(reverse = T)) +
+    theme(
+      legend.text = element_text(size = 14),
+      panel.grid.major.x = element_blank()
+    ) +
+    labs(
+      x = "Number of employees", 
+      y = "Number of job offers"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_size_n_non.pdf"), 
+         width = 12, height = 7.5, device = cairo_pdf) 
+}
+
+
+df_size_edu_non %>% 
+  group_by(size, education) %>% 
+  summarize(
+    n = n(),
+    rel = n() / unique(total)
+  ) %>% 
+  ungroup() %>% 
+  ggplot(aes(size, rel, 
+             fill = education)) +
+    geom_col(width = .8) +
+    geom_text(
+      aes(
+        label = n,
+        color = after_scale(darken(fill, .4, space = "HLS"))
+      ),
+      position = position_stack(vjust = .5),
+      family = "Overpass Mono"
+    ) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, 1),
+      breaks = seq(0, 1, by = .2),
+      labels = scales::percent_format(accuracy = 1)
+    ) +
+    scale_fill_manual(
+      values = c("grey60", cols_degree), 
+      name = "Required degree:"
+    ) +
+    guides(fill = guide_legend(reverse = T)) +
+    theme(
+      legend.text = element_text(size = 14),
+      panel.grid.major.x = element_blank()
+    ) +
+    labs(
+      x = "Number of employees", 
+      y = "Percentage of all job offers"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_size_rel_non.pdf"), 
+         width = 12, height = 7.5, device = cairo_pdf) 
+}
+```
+
+
+* Which education level is required by high-revenue companies?
+
+```{r 5-1-requirement-revenue-education-incl-none, fig.width = 12, fig.height = 7.5}
+df_rev_edu_non<-
+  df_revenue %>% 
+  mutate(
+    bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|bachelor"), 1, 0),
+    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|master"), 1, 0),
+    doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
+  ) %>% 
+  filter(!is.na(bachelors)) %>% 
+  dplyr::select(revenue, bachelors, masters, doctorate) %>% 
+  mutate(
+    education = case_when(
+      bachelors + masters + doctorate == 0 ~ "none",
+      bachelors == 1 ~ "bachelors",
+      bachelors == 0 & masters == 1 ~ "masters",
+      bachelors + masters == 0 & doctorate == 1 ~ "doctorate"
+    )
+  ) %>% 
+  group_by(revenue) %>% 
+  mutate(
+    total = n(),
+    education = str_to_title(education),
+    education = factor(education, levels = c("None", "Doctorate", "Masters", "Bachelors")),
+    col = if_else(education == "None", "1", "2")
+  ) %>% 
+  ungroup()
+
+df_rev_edu_non %>% 
+  group_by(revenue, education) %>% 
+  summarize(
+    n = n(),
+    rel = n() / unique(total)
+  ) %>% 
+  ungroup() %>% 
+  ggplot(aes(revenue, rel, 
+             fill = education)) +
+    geom_col(width = .8) +
+    geom_text(
+      aes(
+        label = n,
+        color = after_scale(darken(fill, .4, space = "HLS"))
+      ),
+      position = position_stack(vjust = .5),
+      family = "Overpass Mono"
+    ) +
+    scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+    scale_y_continuous(
+      expand = c(.0005, .0005),
+      limits = c(0, 1),
+      breaks = seq(0, 1, by = .2),
+      labels = scales::percent_format(accuracy = 1)
+    ) +
+    scale_fill_manual(
+      values = c("grey60", cols_degree), 
+      name = "Required degree:"
+    ) +
+    guides(fill = guide_legend(reverse = T)) +
+    theme(
+      legend.text = element_text(size = 14),
+      panel.grid.major.x = element_blank()
+    ) +
+    labs(
+      x = "Estimated revenue", 
+      y = "Percentage of all job offers"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_revenue_non_dodge.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+
+df_rev_edu_non %>% 
+  group_by(revenue, education) %>% 
+  summarize(
+    n = n(),
+    rel = n() / unique(total)
+  ) %>% 
+  ungroup() %>% 
+  ggplot(aes(revenue, rel, 
+             fill = education)) +
+    geom_col(width = .8) +
+    geom_text(
+      aes(
+        label = n,
+        color = after_scale(darken(fill, .4, space = "HLS"))
+      ),
+      position = position_stack(vjust = .5),
+      family = "Overpass Mono"
+    ) +
+    scale_y_continuous(
+      expand = c(.0005, .0005),
+      limits = c(0, 1),
+      breaks = seq(0, 1, by = .2),
+      labels = scales::percent_format(accuracy = 1)
+    ) +
+    scale_fill_manual(
+      values = c("grey60", cols_degree), 
+      name = "Required degree:"
+    ) +
+    guides(fill = guide_legend(reverse = T)) +
+    theme(
+      legend.text = element_text(size = 14),
+      panel.grid.major.x = element_blank(),
+      axis.text.x = element_text(size = 9)
+    ) +
+    labs(
+      x = "Estimated revenue", 
+      y = "Percentage of all job offers"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_revenue_non_small.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+
+df_rev_edu_non %>% 
+  group_by(revenue, education) %>% 
+  summarize(
+    n = n(),
+    rel = n() / unique(total)
+  ) %>% 
+  ungroup() %>% 
+  ggplot(aes(revenue, rel, 
+             fill = education)) +
+    geom_col(width = .8) +
+    geom_text(
+      aes(
+        label = n,
+        color = after_scale(darken(fill, .4, space = "HLS"))
+      ),
+      position = position_stack(vjust = .5),
+      family = "Overpass Mono"
+    ) +
+    scale_y_continuous(
+      expand = c(.0005, .0005),
+      limits = c(0, 1),
+      breaks = seq(0, 1, by = .2),
+      labels = scales::percent_format(accuracy = 1)
+    ) +
+    scale_fill_manual(
+      values = c("grey60", cols_degree), 
+      name = "Required degree:"
+    ) +
+    guides(fill = guide_legend(reverse = T)) +
+    theme(
+      legend.text = element_text(size = 14),
+      panel.grid.major.x = element_blank(),
+      axis.text.x = element_text(angle = 22, hjust = 1, vjust = 1)
+    ) +
+    labs(
+      x = "Estimated revenue", 
+      y = "Percentage of all job offers"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_revenue_non_angle.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+```
+
+
+```{r}
+df_rev_edu_non %>% 
+  count(revenue, education) %>% 
+  ungroup() %>% 
+  ggplot(aes(revenue, n, 
+             fill = education)) +
+    geom_col(width = .8) +
+    scale_x_discrete() +
+    scale_y_continuous(
+      expand = c(.0005, .0005),
+      limits = c(0, 1420),
+      breaks = seq(0, 1400, by = 200)
+    ) +
+    scale_fill_manual(
+      values = c("grey60", cols_degree), 
+      name = "Required degree:"
+    ) +
+    guides(fill = guide_legend(reverse = T)) +
+    theme(
+      legend.text = element_text(size = 14),
+      panel.grid.major.x = element_blank(),
+      axis.text.x = element_text(size = 9)
+    ) +
+    labs(
+      x = "Estimated revenue", 
+      y = "Number of job offers"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_1_require_edu_revenue_n_non_small.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+```
+
+
 ## 5.2	Programming Languages
 
 * What programming languages are most often required? 
@@ -2647,6 +3053,7 @@ tools <- str_to_lower(c(
   "Google Keyword Planner",
   "Google Location",
   "Google Trends",
+  "Google Data Studio",
   "Gookey",
   "GrepWords",
   "HitTail",
@@ -2746,15 +3153,15 @@ tools <- str_to_lower(c(
   "Linkstant",
   "MailShake",
   "Muck Rack",
-  "Ninja",
+  "Ninja Outreach",
   "Ontolo",
   "Pitchbox",
   "Remove'em",
   "Rmoov",
   "ScrapeBox",
-  "tableau",
+  "Tableau",
   "qlik",
-  "power bi"
+  "Power BI"
 ))
 ```
 
@@ -2762,11 +3169,26 @@ tools <- str_to_lower(c(
 * How often is the knowledge of tools required?
 
 ```{r 5-3-requirement-tools, fig.width = 12, fig.height = 7}
-df_en %>% 
+df_req_tools <-
+  df_en %>% 
+  filter(!is.na(description)) %>% 
+  mutate(total = n()) %>% 
   rowwise() %>% 
   mutate(n_tools = sum(str_detect(description, tools))) %>% 
-  count(n_tools) %>% 
+  count(n_tools, total) %>% 
+  mutate(yes_no = if_else(n_tools == 0, F, T)) %>% 
+  group_by(yes_no) %>% 
+  mutate(perc_yes_no = sum(n) / unique(total))
+
+df_req_tools %>% 
   ggplot(aes(n_tools, n)) +
+    # geom_rect(
+    #   aes(
+    #     xmin = -Inf, xmax = .5,
+    #     ymin = -Inf, ymax = Inf
+    #   ),
+    #   fill = "grey90"
+    # ) +
     geom_col(
       fill = bl_col, 
       width = .8
@@ -2778,13 +3200,50 @@ df_en %>%
       fontface = "bold",
       size = 4,
       nudge_y = 15
-    )  +
+    ) +
+    geom_text(
+      data = df_req_tools %>% filter(n_tools %in% c(0, 6)),
+      aes(
+        y = 1040,
+        label = glue::glue("{round(perc_yes_no, 3) * 100}%")
+      ),
+      family = "Montserrat",
+      fontface = "bold",
+      color = "grey30",
+      size = 4.5
+    ) +
+    geom_segment(
+      aes(
+        x = .5975, xend = 11.4025,
+        y = 1020, yend = 1020
+      ),
+      color = "grey30",
+      size = .2
+    ) +
+    geom_segment(
+      aes(
+        x = .6, xend = .6,
+        y = 540, yend = 1020
+      ),
+      color = "grey30",
+      size = .2
+    ) +
+    geom_segment(
+      aes(
+        x = 11.4, xend = 11.4,
+        y = 28, yend = 1020
+      ),
+      color = "grey30",
+      size = .2
+    ) +
     scale_x_continuous(
+      limits = c(-.5, 11.5),
       breaks = 0:11,
       labels = c("None", "1 tool", glue::glue("{2:11} tools")),
-      expand = c(.001, .001)
+      expand = c(0, 0)
     ) +
     scale_y_continuous(
+      limits = c(0, 1070),
       breaks = NULL,
       expand = c(.01, .01)
     ) +
@@ -2800,7 +3259,7 @@ df_en %>%
     )
 
 if(save == T){ 
-  ggsave(here::here("plots", "5_3_require_tools.pdf"), 
+  ggsave(here::here("plots", "5_3_require_tools_perc.pdf"), 
          width = 12, height = 8, device = cairo_pdf) 
 }
 ```
@@ -2824,6 +3283,12 @@ df_en_tools %>%
   filter(count > 9) %>% 
   mutate(
     tool = str_to_title(tool),
+    tool = case_when(
+      tool == "Semrush" ~ "SEMrush",
+      tool == "Se Ranking" ~ "SE Ranking",
+      tool == "Power Bi" ~ "Power BI",
+      TRUE ~ tool
+    ),
     tool = fct_reorder(tool, count)
   ) %>% 
   ggplot(aes(count, tool)) +
@@ -2853,7 +3318,7 @@ df_en_tools %>%
     )
 
 if(save == T){ 
-  ggsave(here::here("plots", "5_3_require_tools_ind2.pdf"), 
+  ggsave(here::here("plots", "5_3_require_tools_ind.pdf"), 
          width = 12, height = 7, device = cairo_pdf) 
 }
 ```
@@ -2885,7 +3350,7 @@ df_en %>%
       expand = c(.01, .01)
     ) +
     scale_y_continuous(
-      expand = c(.01, .01),
+      expand = c(0, 0),
       breaks = seq(0, 35, by = 5)
     ) +
     labs(
@@ -2899,6 +3364,45 @@ df_en %>%
 
 if(save == T){ 
   ggsave(here::here("plots", "5_4_require_experience.pdf"), 
+         width = 12, height = 8, device = cairo_pdf) 
+}
+```
+
+```{r 5-4-requirement-experience-no23, fig.width = 12, fig.height = 7}
+df_en %>% 
+  mutate(
+    exp = str_extract(description, "[0-9]+ years experience|1 year experience|experience: [0-9]+ year|experience [0-9]+ year|experience of [0-9]+ year"),
+    exp = as.numeric(str_extract(exp, "[0-9]+")),
+  ) %>% 
+  filter(
+    !is.na(exp),
+    !exp > 10
+  ) %>% 
+  count(exp) %>% 
+  ggplot(aes(exp, n)) + 
+    geom_col(
+      fill = bl_col,
+      width = .9
+    ) +
+    scale_x_continuous(
+      breaks = c(1:7, 10, 23),
+      expand = c(.01, .01)
+    ) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      breaks = seq(0, 35, by = 5)
+    ) +
+    labs(
+      x = "Years of experience required",
+      y = "Number of job offers"
+    ) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank()
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "5_4_require_experience_reduced.pdf"), 
          width = 12, height = 8, device = cairo_pdf) 
 }
 ```
@@ -2946,9 +3450,9 @@ df_salary %>%
     ) +
     annotate(
       "text",
-      x = 105,
+      x = 109,
       y = 94,
-      label = glue::glue("Mean: ${round(mean(df_salary$salary_avg), 0)}K"),
+      label = glue::glue("Mean: ${format(round(mean(df_salary$salary_avg), 3) * 1000, big.mark = ',')}"),
       family = "Montserrat",
       color = "grey35",
       fontface = "bold",
@@ -3048,7 +3552,7 @@ df_salary_cities %>%
      limits = c(0, 150)
    ) +
    scale_fill_manual(
-     values = c(darken(bl_col, .5), lighten(bl_col, .7), darken(bl_col, .25), "grey70", bl_col),
+     values = c(darken(bl_col, .5), lighten(bl_col, .7), darken(bl_col, .25), "grey75", bl_col),
      guide = F
    ) +
    labs(
@@ -3147,8 +3651,9 @@ if(save == T){
 
 * Do positions with programming languages pay significantly more?
 
-```{r 6-4-salary-requirement-programming, fig.width = 7, fig.height = 9}
-df_salary %>% 
+```{r 6-4-salary-programming-data}
+df_salary_prog <-  
+  df_salary %>% 
   mutate(
     prog = str_detect(description, c("\\bjavascript\\b", "\\bhtml\\b", "\\bcss\\b", "\\bsql\\b", 
                                      "\\bpython\\b", "\\bjava\\b", "\\bbash\\b", "\\bshell\\b", 
@@ -3166,7 +3671,11 @@ df_salary %>%
     med = median(salary_avg),
     sd = sd(salary_avg),
     n = n()
-  ) %>% 
+  )
+```
+
+```{r 6-4-salary-requirement-programming, fig.width = 7, fig.height = 9}
+df_salary_prog %>% 
   mutate(hjust = if_else(prog == F, 1.3, -.3)) %>% 
   ggplot(aes(prog, avg)) +
     geom_linerange(
@@ -3183,7 +3692,7 @@ df_salary %>%
       size = .4,
       linetype = "dashed"
     ) +
-     geom_point(
+    geom_point(
       color = "grey40",
       size = 7
     ) +
@@ -3237,18 +3746,6 @@ df_salary %>%
       size = 4.5,
       nudge_y = -2
     ) +
-    geom_text(
-      aes(
-        y = med,
-        label = glue::glue("${round(med, 1)}K"), 
-        hjust = hjust
-      ),
-      family = "Montserrat",
-      color = bl_col,
-      fontface = "bold",
-      size = 4.5,
-      nudge_y = -2
-    ) +
     annotate(
       "text",
       x = 1.5,
@@ -3281,7 +3778,7 @@ df_salary %>%
     labs(
       x = "Programming language\nmentioned as requirement?",
       y = "Estimated salary",
-      caption = "The line shows the standard deviation from the estimated average salaries."
+      caption = "The line shows the standard deviation of the average salary per group."
     ) +
     theme(panel.grid.major.x = element_blank())
 
@@ -3290,6 +3787,237 @@ if(save == T){
          width = 7, height = 9, device = cairo_pdf) 
 }
 ```
+
+
+#### average
+
+```{r 6-4-salary-requirement-programming-average, fig.width = 7, fig.height = 9}
+df_salary_prog %>% 
+  mutate(hjust = if_else(prog == F, 1.3, -.3)) %>% 
+  ggplot(aes(prog, avg)) +
+    geom_linerange(
+      aes(
+        ymin = avg - sd, 
+        ymax = avg + sd
+      ),
+      color = "grey40",
+      size = 1.2
+    ) +
+    geom_line(
+      aes(group = 1),
+      color = "grey40",
+      size = .4,
+      linetype = "dashed"
+    ) +
+    geom_point(
+      color = "grey40",
+      size = 7
+    ) +
+    geom_text(
+      aes(
+        y = 50,
+        label = glue::glue("n = {n}")
+      ),
+      family = "Montserrat",
+      color = "grey40",
+      size = 3.5, 
+      hjust = .5,
+      nudge_y = -3
+    ) +
+    geom_text(
+      aes(
+        label = glue::glue("${round(avg, 1)}K"), 
+        hjust = hjust
+      ),
+      family = "Montserrat",
+      color = "grey40",
+      fontface = "bold",
+      size = 4.5,
+      nudge_y = 3
+    ) +
+    annotate(
+      "text",
+      x = 1.5,
+      y = 88,
+      label = "Average",
+      family = "Montserrat",
+      color = "grey40",
+      fontface = "bold",
+      size = 4.5
+    ) +
+    scale_x_discrete(
+      labels = c("No", "Yes"),
+      expand = c(.2, .2)
+    ) +
+    scale_y_continuous(
+      breaks = seq(40, 120, by = 20),
+      labels = glue::glue("${seq(40, 120, by = 20)}K"),
+      limits = c(40, NA)
+    ) +
+    labs(
+      x = "Programming language\nmentioned as requirement?",
+      y = "Estimated salary",
+      caption = "The line shows the standard deviation of the average salary per group."
+    ) +
+    theme(panel.grid.major.x = element_blank())
+
+if(save == T){ 
+  ggsave(here::here("plots", "6_4_salary_req_prog_avg.pdf"), 
+         width = 7, height = 9, device = cairo_pdf) 
+}
+```
+
+```{r 6-4-salary-requirement-programming-average-bars, fig.width = 7, fig.height = 9}
+df_salary_prog %>% 
+  mutate(hjust = if_else(prog == F, 1.1, -.1)) %>% 
+  ggplot(aes(prog, avg, fill = prog)) +
+    geom_col(
+      aes(color = after_scale(darken(fill, .4, space = "HLS"))),
+      width = .8
+    ) +
+    geom_errorbar(
+      aes(
+        ymin = avg - sd, 
+        ymax = avg + sd
+      ),
+      color = "grey40",
+      size = .8,
+      width = .1
+    ) +
+    geom_text(
+      aes(
+        y = 3,
+        label = glue::glue("n = {n}")
+      ),
+      family = "Montserrat",
+      color = "white",
+      fontface = "bold",
+      size = 3.5, 
+      vjust = 0,
+      hjust = .5
+    ) +
+    geom_text(
+      aes(
+        label = glue::glue("${round(avg, 1)}K"), 
+        hjust = hjust,
+        color = after_scale(darken(fill, .4, space = "HLS"))
+      ),
+      family = "Montserrat",
+      fontface = "bold",
+      size = 4.5,
+      nudge_y = 3
+    ) +
+    scale_x_discrete(
+      labels = c("No", "Yes"),
+      expand = c(.4, .4)
+    ) +
+    scale_y_continuous(
+      expand = c(0, 0),
+      breaks = seq(0, 120, by = 20),
+      labels = glue::glue("${seq(0, 120, by = 20)}K"),
+      limits = c(0, NA)
+    ) +
+    scale_fill_manual(
+      values = c("grey70", bl_col),
+      guide = F
+    ) +
+    labs(
+      x = "Programming language\nmentioned as requirement?",
+      y = "Estimated salary",
+      caption = "The error bar shows the standard deviation of the average salary per group."
+    ) +
+    theme(panel.grid.major.x = element_blank())
+
+if(save == T){ 
+  ggsave(here::here("plots", "6_4_salary_req_prog_avg_bars.pdf"), 
+         width = 7, height = 9, device = cairo_pdf) 
+}
+```
+
+#### median
+
+```{r 6-4-salary-requirement-programming-median, fig.width = 7, fig.height = 9}
+df_salary_prog %>% 
+  mutate(hjust = if_else(prog == F, 1.3, -.3)) %>% 
+  ggplot(aes(prog, med)) +
+    geom_linerange(
+      aes(
+        ymin = avg - sd, 
+        ymax = avg + sd
+      ),
+      color = "grey40",
+      size = 1.2
+    ) +
+    geom_line(
+      aes(group = 1),
+      color = "grey40",
+      size = .4,
+      linetype = "dashed"
+    ) +
+    geom_point(
+      color = bl_col,
+      size = 7
+    ) +
+    geom_line(
+      aes(group = 1),
+      color = bl_col,
+      size = .4,
+      linetype = "dashed"
+    ) +
+   geom_text(
+      aes(
+        y = 50,
+        label = glue::glue("n = {n}")
+      ),
+      family = "Montserrat",
+      color = "grey40",
+      size = 3.5, 
+      hjust = .5,
+      nudge_y = -3
+    ) +
+    geom_text(
+      aes(
+        label = glue::glue("${round(med, 1)}K"), 
+        hjust = hjust
+      ),
+      family = "Montserrat",
+      color = bl_col,
+      fontface = "bold",
+      size = 4.5,
+      nudge_y = -2
+    ) +
+    annotate(
+      "text",
+      x = 1.5,
+      y = 78,
+      label = "Median",
+      family = "Montserrat",
+      color = bl_col,
+      fontface = "bold",
+      size = 4.5
+    ) +
+    scale_x_discrete(
+      labels = c("No", "Yes"),
+      expand = c(.2, .2)
+    ) +
+    scale_y_continuous(
+      breaks = seq(40, 120, by = 20),
+      labels = glue::glue("${seq(40, 120, by = 20)}K"),
+      limits = c(40, NA)
+    ) +
+    labs(
+      x = "Programming language\nmentioned as requirement?",
+      y = "Estimated salary",
+      caption = "The line shows the standard deviation of the average salary per group."
+    ) +
+    theme(panel.grid.major.x = element_blank())
+
+if(save == T){ 
+  ggsave(here::here("plots", "6_4_salary_req_prog_med.pdf"), 
+         width = 7, height = 9, device = cairo_pdf) 
+}
+```
+
 
 
 ## 6.5	Salaries per Company Rating
@@ -3371,12 +4099,41 @@ df_dates %>%
     ) +
     theme(
       axis.text.x = element_blank(),
-      legend.position = c(.3, .7),
+      legend.position = c(.7, .7),
       legend.direction = "horizontal"
     )
 
 if(save == T){ 
   ggsave(here::here("plots", "7_1_dates_weeks_all.pdf"), 
+         width = 12, height = 6.5, device = cairo_pdf) 
+}
+
+df_dates %>% 
+  filter(
+    str_detect(url, "https://www.linkedin.com"),
+    !str_detect(location, "United Kingdom|UK|England|Wales|Ireland")
+  ) %>% 
+  count(week_cum, year) %>% 
+  ggplot(aes(week_cum, n)) +
+    geom_col(aes(fill = as.factor(year)), width = 1.05) +
+    scale_x_continuous(expand = c(.005, .005)) +
+    scale_y_continuous(expand = c(.01, .01)) +
+    scale_fill_manual(
+      values = c(bl_col, darken(bl_col, .2, space = "HLS")),
+      name = NULL
+    ) +
+    labs(
+      x = "Date posted in weeks",
+      y = "Number of job offers on LinkedIn.com"
+    ) +
+    theme(
+      axis.text.x = element_blank(),
+      legend.position = c(.7, .7),
+      legend.direction = "horizontal"
+    )
+
+if(save == T){ 
+  ggsave(here::here("plots", "7_1_dates_weeks_en.pdf"), 
          width = 12, height = 6.5, device = cairo_pdf) 
 }
 ```
@@ -3403,7 +4160,7 @@ df_dates %>%
       expand = c(.01, .01)
     ) +
     scale_y_continuous(
-      expand = c(.01, .01),
+      expand = c(0, 0),
       breaks = seq(0, 200, by = 20)
     ) +
     scale_fill_manual(
@@ -3440,7 +4197,7 @@ df_dates %>%
       width = .85,
       fill = bl_col
     ) +
-    scale_y_continuous(expand = c(.01, .01)) +
+    scale_y_continuous(expand = c(0, 0)) +
     labs(
       x = "Weekday posted",
       y = "Number of job offers on LinkedIn.com"

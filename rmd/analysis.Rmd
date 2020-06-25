@@ -90,12 +90,12 @@ theme_set(ggthemes::theme_clean(base_size = 15, base_family = "Montserrat"))
 theme_update(plot.margin = margin(30, 30, 30, 30),
              plot.background = element_rect(color = "white",
                                             fill = "white"),
-             plot.title = element_text(size = 16,
+             plot.title = element_text(size = 24,
                                        face = "bold",
-                                       lineheight = 1.15,
+                                       lineheight = 1.05,
                                        hjust = .5,
                                        margin = margin(10, 0, 25, 0)),
-             #plot.title.position = "plot",
+             plot.title.position = "plot",
              plot.caption = element_text(color = "grey40", 
                                          size = 9,
                                          margin = margin(20, 0, -20, 0)),
@@ -435,12 +435,14 @@ df_en %>%
     labs(
       x = NULL, 
       y = "Term frequence in job titles",
+      title = '"Manager", "Specialist" and "Marketing" Are the\nMost Common Words Used In SEO Job Titles',
       caption = 'Note: Only words with a frequency of 25 or more shown. The terms "SEO", "Search", "Engine", and "Optimization" were removed.'
     ) +
-    theme_flip
+    theme_flip +
+    theme(panel.grid.major.y = element_blank())
 
 if(save == T){
-  ggsave(here::here("plots", "1_1_jobs_word.pdf"), width = 12, height = 10, device = cairo_pdf)
+  ggsave(here::here("plots", "1_1_jobs_word.pdf"), width = 12, height = 11, device = cairo_pdf)
 }
 ```
 
@@ -509,17 +511,20 @@ ggplot(
     labs(
       x = NULL, 
       y = "Frequence of word sequence in job titles",
+      title = '“Senior SEO Manager”, "Remote Role Possible", “Head of SEO”,\nand “SEO Content Writer” Are the Most Common Phrases\nUsed in SEO Job Titles',
       caption = 'Note: Only sequences with a frequency of 10 or more shown. The sequence "Search Engine Optimization" was removed.'
     ) +
     theme_flip +
     theme(
+      axis.text.y = element_text(size = 14),
       legend.position = c(.76, .45),
       legend.key.size = unit(3, "pt"),
-      legend.key.width = unit(30, "pt")
+      legend.key.width = unit(30, "pt"),
+      panel.grid.major.y = element_blank()
     )
 
 if(save == T){
-  ggsave(here::here("plots", "1_1_jobs_cat.pdf"), width = 12, height = 10, device = cairo_pdf)
+  ggsave(here::here("plots", "1_1_jobs_cat.pdf"), width = 12, height = 13, device = cairo_pdf)
 }
 ```
 
@@ -667,7 +672,14 @@ df_stack %>%
       range = c(1.5, 15), 
       guide = F
     ) +
-    theme_void()
+    labs(title = "Only 22.9% of SEO Jobs Are Highly Technical") +
+    theme_void() +
+    theme(plot.title = element_text(family = "Montserrat", 
+                                    size = 34,
+                                    face = "bold",
+                                    lineheight = 1.05,
+                                    hjust = .5,
+                                    margin = margin(30, 0, 0, 0)))
 
 if(save == T){
   ggsave(here::here("plots", "1_1_jobs_tech_adj.pdf"), width = 12, height = 15.5, device = cairo_pdf)
@@ -1088,12 +1100,16 @@ df_cities %>%
     labs(
       x = "Number of job offers",
       y = NULL,
+      title = "Companies Based In New York, San Francisco, Austin and Chicago\nHave the Highest Number of Job Offers in the SEO Industry",
       caption = 'Note: Only cities with 15 or more job offers shown.'
-    )
+    ) +
+    theme(axis.text.y = element_text(size = 14),
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.x = element_blank())
 
 if(save == T){ 
   ggsave(here::here("plots", "2_1_bars_cities.pdf"), 
-         width = 12, height = 8, device = cairo_pdf) 
+         width = 12, height = 9.5, device = cairo_pdf) 
 }
 ```
 
@@ -1690,7 +1706,7 @@ df_gd %>%
       fontface = "bold",
       hjust = 0,
       nudge_y = 3,
-      size = 2.7
+      size = 3.2
     ) +
     coord_flip() +
     scale_y_continuous(
@@ -1700,13 +1716,17 @@ df_gd %>%
     ) +
     labs(
       x = NULL, 
-      y = "Number of job offers by sector"
+      y = "Number of job offers by sector",
+      title = 'Companies In the "Business Services" and "IT" Hire SEO\nProfessionals Most Often'
     ) +
-    theme_flip
+    theme_flip +
+    theme(axis.text.y = element_text(size = 13),
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.x = element_blank())
 
 if(save == T){ 
   ggsave(here::here("plots", "3_3_sector_counts.pdf"), 
-         width = 12, height = 7, device = cairo_pdf) 
+         width = 12, height = 9, device = cairo_pdf) 
 }
 ```
 
@@ -1730,7 +1750,7 @@ df_gd %>%
       fontface = "bold",
       hjust = 0,
       nudge_y = 3,
-      size = 2.7
+      size = 3.2
     ) +
     coord_flip() +
     scale_y_continuous(
@@ -1741,13 +1761,17 @@ df_gd %>%
     labs(
       x = NULL, 
       y = "Number of job offers by industry",
+      title = 'Industries With The Highest Number of SEO Job Postings Include\nAdvertising & Marketing, Staffing & Outsourcing and IT',
       caption = "Note: Only industries with 10 or more job offers shown."
     ) +
-    theme_flip
+    theme_flip +
+    theme(axis.text.y = element_text(size = 13),
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.x = element_blank())
 
 if(save == T){ 
   ggsave(here::here("plots", "3_3_industry_counts.pdf"), 
-         width = 12, height = 7.5, device = cairo_pdf) 
+         width = 12, height = 9.5, device = cairo_pdf) 
 }
 ```
 
@@ -2119,7 +2143,8 @@ df_size_edu %>%
     ) +
     labs(
       x = NULL,
-      y = NULL
+      y = NULL,
+      title = "35.7% of SEO Positions Require a College Degree"
     ) +
     theme(
       axis.text.x = element_text(size = 22),
@@ -2550,7 +2575,8 @@ df_size_edu_non %>%
     ) +
     labs(
       x = NULL,
-      y = NULL
+      y = NULL,
+      title = "64.3% of SEO Positions Don’t Require a College Degree"
     ) +
     theme(
       axis.text.x = element_text(size = 18),
@@ -2933,15 +2959,18 @@ df_prog %>%
       breaks = seq(0, 1000, by = 100)
     ) +
     theme_flip +
-    theme(axis.text.y = element_text(size = 14)) +
+    theme(axis.text.y = element_text(size = 15),
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.x = element_blank()) +
     labs(
       x = NULL,
-      y = "Number of job descriptions mentioning each programming language"
+      y = "Number of job descriptions mentioning each programming language",
+      title = "The Most In-Demand Programming Languages In SEO Are\nHTML, CSS, Javascript, Go, SQL and PHP"
     )
 
 if(save == T){ 
   ggsave(here::here("plots", "5_2_require_prog.pdf"), 
-         width = 12, height = 8, device = cairo_pdf) 
+         width = 12, height = 9, device = cairo_pdf) 
 }
 ```
 
@@ -3014,15 +3043,19 @@ df_prog %>%
       limits = c(0, 270)
     ) +
     theme_flip +
+    theme(axis.text.y = element_text(size = 13),
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.x = element_blank()) +
     labs(
       x = NULL,
       y = "Mentioned combinations of programming\nlanguages in job descriptions",
+      title = "Employers Want SEO Professionals to Know a Combination of\nHTML + CSS + JS",
       caption = 'Note: Only combinations that occured more than 5 times shown.'
     )
 
 if(save == T){ 
   ggsave(here::here("plots", "5_2_require_prog_comb.pdf"), 
-         width = 12, height = 8, device = cairo_pdf) 
+         width = 12, height = 9.5, device = cairo_pdf) 
 }
 ```
 
@@ -3275,7 +3308,8 @@ df_req_tools %>%
     ) +
     labs(
       x = "Number of tools mentioned in job descriptions",
-      y = NULL
+      y = NULL,
+      title = "63.4% of SEO Position Cite Experience With a Specific SEO Tool"
     )
 
 if(save == T){ 
@@ -3334,12 +3368,16 @@ df_en_tools %>%
     labs(
       x = "Number of mentions",
       y = NULL,
+      title = "Employers Want SEO Candidates to Know Google Analytics,\nSEMrush, Google Search Console, Moz, Screaming Frog and Ahrefs",
       caption = 'Note: Only tools with a frequency of 10 or more shown.' 
-    )
+    ) +
+    theme(axis.text.y = element_text(size = 13),
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.x = element_blank())
 
 if(save == T){ 
   ggsave(here::here("plots", "5_3_require_tools_ind.pdf"), 
-         width = 12, height = 7, device = cairo_pdf) 
+         width = 12.3, height = 8.7, device = cairo_pdf) 
 }
 ```
 
@@ -3402,7 +3440,7 @@ df_en %>%
   ggplot(aes(exp, n)) + 
     geom_col(
       fill = bl_col,
-      width = .9
+      width = .8
     ) +
     scale_x_continuous(
       breaks = c(1:7, 10, 23),
@@ -3414,7 +3452,8 @@ df_en %>%
     ) +
     labs(
       x = "Years of experience required",
-      y = "Number of job offers"
+      y = "Number of job offers",
+      title = "Most SEO Positions Require 2-5 Years of Experience"
     ) +
     theme(
       panel.grid.major.x = element_blank(),
@@ -3494,9 +3533,10 @@ df_salary %>%
     ) +
     labs(
       x = "Average salary", 
-      y = "Number of job offers"
+      y = "Number of job offers",
+      title = "The Average SEO Annual Salary is $85K/Year"
     ) +
-    theme(panel.grid.major.x = element_blank())
+    theme(panel.grid.minor.x = element_blank())
 
 if(save == T){ 
   ggsave(here::here("plots", "6_1_salary_histo.pdf"), 
@@ -3522,7 +3562,7 @@ df_salary_cities <-
     state = str_extract(location, "[^, ]*$"),
     state_lump = case_when(
       state == "CA" ~ "California",
-      state == "FL" ~ "Florida",
+      #state == "FL" ~ "Florida",
       state == "NY" ~ "New York",
       state == "TX" ~ "Texas",
       TRUE ~ "other"
@@ -3546,15 +3586,15 @@ df_salary_cities %>%
      hjust = 1,
      nudge_x = -1.5
    ) +
-   geom_text(
-     data = df_salary_cities %>% slice(19),
-     aes(label = state_lump),
-     family = "Montserrat",
-     fontface = "bold",
-     color = "grey40",
-     hjust = 1,
-     nudge_x = -1.5
-   ) +
+   # geom_text(
+   #   data = df_salary_cities %>% slice(19),
+   #   aes(label = state_lump),
+   #   family = "Montserrat",
+   #   fontface = "bold",
+   #   color = "grey40",
+   #   hjust = 1,
+   #   nudge_x = -1.5
+   # ) +
    ggtext::geom_richtext(
      aes(label = glue::glue("**${round(avg, 1)}K** (n = {n})")),
      family = "Montserrat",
@@ -3572,19 +3612,21 @@ df_salary_cities %>%
      limits = c(0, 150)
    ) +
    scale_fill_manual(
-     values = c(darken(bl_col, .5), lighten(bl_col, .7), darken(bl_col, .25), "grey75", bl_col),
+     #values = c(darken(bl_col, .5), lighten(bl_col, .7), darken(bl_col, .25), "grey75", bl_col),
+     values = c(darken(bl_col, .5), darken(bl_col, .25), "grey75", bl_col),
      guide = F
    ) +
    labs(
      x = "Average salary",
      y = NULL,
+     title = "SEO Jobs In the San Francisco Bay Area\nHave the Highest Average Salaries",
      caption = 'Note: Only cities with 5 or more offers including salary estimations shown.'
    ) +
    theme(panel.grid.major.y = element_blank())
 
 if(save == T){ 
   ggsave(here::here("plots", "6_2_salary_cities.pdf"), 
-         width = 12, height = 14, device = cairo_pdf) 
+         width = 12, height = 15.5, device = cairo_pdf) 
 }
 ```
 
@@ -3651,12 +3693,13 @@ df_salary_states %>%
     labs(
       x = "Average salary",
       y = NULL,
+      title = "SEO Jobs in CA, NY, NJ and CT Have the Highest Annual Salaries",
       caption = 'Note: Only states with 10 or more offers including salary estimations shown.\nPoints show the average estimated salary, lines indicate the range of salaries per state.'
     )
 
 if(save == T){ 
   ggsave(here::here("plots", "6_2_salary_states.pdf"), 
-         width = 12, height = 9, device = cairo_pdf) 
+         width = 12, height = 9.5, device = cairo_pdf) 
 }
 ```
 
@@ -3877,9 +3920,11 @@ df_salary_prog %>%
     labs(
       x = "Programming language\nmentioned as requirement?",
       y = "Estimated salary",
+      title = "SEOs That Can Code Get On Average\nPaid More Than Those That Can’t",
       caption = "The line shows the standard deviation of the average salary per group."
     ) +
-    theme(panel.grid.major.x = element_blank())
+    theme(panel.grid.major.x = element_blank(),
+          plot.title = element_text(size = 20))
 
 if(save == T){ 
   ggsave(here::here("plots", "6_4_salary_req_prog_avg.pdf"), 
@@ -3944,9 +3989,11 @@ df_salary_prog %>%
     labs(
       x = "Programming language\nmentioned as requirement?",
       y = "Estimated salary",
+      title = "SEOs That Can Code Get On Average\nPaid More Than Those That Can’t",
       caption = "The error bar shows the standard deviation of the average salary per group."
     ) +
-    theme(panel.grid.major.x = element_blank())
+    theme(panel.grid.major.x = element_blank(),
+          plot.title = element_text(size = 20))
 
 if(save == T){ 
   ggsave(here::here("plots", "6_4_salary_req_prog_avg_bars.pdf"), 
@@ -4028,9 +4075,11 @@ df_salary_prog %>%
     labs(
       x = "Programming language\nmentioned as requirement?",
       y = "Estimated salary",
+      title = "Median Income of SEOs That Can Code Is\nHigher Than For Those That Can’t",
       caption = "The line shows the standard deviation of the average salary per group."
     ) +
-    theme(panel.grid.major.x = element_blank())
+    theme(panel.grid.major.x = element_blank(),
+          plot.title = element_text(size = 20))
 
 if(save == T){ 
   ggsave(here::here("plots", "6_4_salary_req_prog_med.pdf"), 
@@ -4190,6 +4239,7 @@ df_dates %>%
     labs(
       x = "Week posted in 2020",
       y = "Number of job offers on LinkedIn.com",
+      title = "The COVID-19 Pandemic Didn’t Negatively Impact SEO Job Postings",
       caption = "Note: In week 9 (end of February 2020) the number of confirmed COID-19 infections reached 100 in the US and the bars are thus colored pink afterwards.\nEach bar shows only US job postings on LinkedIn."
     ) +
     theme(
@@ -4200,7 +4250,7 @@ df_dates %>%
 
 if(save == T){ 
   ggsave(here::here("plots", "7_1_dates_weeks_2020.pdf"), 
-         width = 12, height = 6.5, device = cairo_pdf) 
+         width = 12.5, height = 8, device = cairo_pdf) 
 }
 ```
 
@@ -4240,7 +4290,7 @@ setwd(here::here("plots", "png"))
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", pdf), 
-              format = "png", dpi = 750)
+              format = "png", dpi = 720)
 }
 ```
 

@@ -252,8 +252,6 @@ Afterwards, we determined the minimimum degree required (Doctorate > Masters > B
 ![](../plots/png/5_1_require_edu_histo_non_1.png)
 
 
-
-
 #### Do larger companies require a formal education?
 
 **Note:** There are many ways one could look at those numbers: absolute, proportional across all job offers and proportional within all that list any educational requirement.

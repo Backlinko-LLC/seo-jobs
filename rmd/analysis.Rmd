@@ -203,7 +203,7 @@ pos_cols <- colfunc(10)
 df_gd <- 
   readr::read_csv(here::here("raw_data", "Glassdoor.csv")) %>% 
   janitor::clean_names() %>% 
-  dplyr::select(-url) %>% 
+  #dplyr::select(-url) %>% 
   mutate(
     description = str_replace_all(description, "\\r", " "),
     description = str_replace_all(description, "\\n", " "),
@@ -3702,7 +3702,7 @@ df_salary_states %>%
     labs(
       x = "Average salary",
       y = NULL,
-      title = "SEO JOBS IN CA, NY, NJ AND CT HAVE THE HIGHEST ANNUAL SALARIES.",
+      title = "SEO JOBS IN CA, CT, NY AND NJ HAVE THE HIGHEST ANNUAL SALARIES.",
       caption = 'Note: Only states with 10 or more offers including salary estimations shown.\nPoints show the average estimated salary, lines indicate the range of salaries per state.'
     )
 
@@ -4342,7 +4342,7 @@ pdfs <- list.files(here::here("plots"), pattern = "*.pdf")
 setwd(here::here("plots", "png"))
 
 for(pdf in pdfs) {
-  pdf_convert(pdf = here::here("plots", pdf), 
+  pdf_convert(pdf = here::here("plots", "pdf"), 
               format = "png", dpi = 720)
 }
 ```

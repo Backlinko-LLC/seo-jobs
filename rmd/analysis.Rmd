@@ -277,7 +277,8 @@ df_gd_join <-
     seniority,
     employment_type,
     industry,
-    sector
+    sector,
+    url
   )
 
 ###################################################
@@ -293,7 +294,7 @@ df_world <-
     seniority,
     employment_type,
     industry,
-    "sector" = job_functions
+    "sector" = job_functions,
   ) %>% 
   full_join(df_gd_join) %>%
   distinct(job_title, employer, location, description, .keep_all = TRUE)
@@ -339,7 +340,8 @@ df_en <-
     seniority,
     employment_type,
     industry,
-    "sector" = job_functions
+    "sector" = job_functions,
+    url
   ) %>% 
   mutate(
     sector = case_when(
@@ -3479,7 +3481,7 @@ if(save == T){
 ```{r data-prep-salary}
 df_salary <- 
   df_gd %>% 
-  dplyr::select(job_title, salary, employer, ratings, description, location) %>% 
+  dplyr::select(job_title, salary, employer, ratings, description, location, url) %>% 
   filter(!is.na(salary)) %>% 
   mutate(
     salary_low = str_extract(salary, "\\$.*\\-"),
@@ -4098,18 +4100,18 @@ if(save == T){
 
 
 ```{r}
-set.seed(1)
+set.seed(123)
 
 sample <- 
   df_salary %>% 
   filter(
     str_detect(description, "\\bjavascript\\b"),
-    salary_avg > 60
+    salary_avg > 90
   ) %>% 
- sample_n(1)
+ slice(29)
 ```
 
-"Senior Web Engineer - SEO" by StockX in Seattle requires JavaScript, HTML and CSS with an estimated average salary is \$116K (estimated range \$108-123K). The average salary in the state of Washington is \$69.2K and \$64.5K as median salary.
+"SEO Director" by Etsy in Brooklyn, NY, requires JavaScript, HTML and CSS with an estimated average salary is \$116K (estimated range \$108-123K). The average salary in the state of New York is \$71.6K and \$70K as median salary.
 
 
 ## 6.5	Salaries per Company Rating
@@ -4155,8 +4157,6 @@ if(save == T){
 
 
 ```{r}
-set.seed(1)
-
 sample <- 
   df_salary %>%
   mutate(
@@ -4178,10 +4178,12 @@ sample <-
     salary_avg > 90, 
     education == "none"
   ) %>% 
-  sample_n(1)
+  slice(24)
 ```
 
-"Content & SEO Strategy Manager" by Henkel in Rocky Hill, CT with an estimated average salary of $105K has listed no degree requirements. 
+"SEO Manager" by Quizlet in San Francisco, CA, with an estimated average salary of $107.5K has listed no degree requirements.
+
+
 
 # 7. Dates of Job Offer Posting
 

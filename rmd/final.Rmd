@@ -251,7 +251,7 @@ Afterwards, we determined the minimimum degree required (Doctorate > Masters > B
 ![](../plots/png/5_1_require_edu_histo_1.png)
 ![](../plots/png/5_1_require_edu_histo_non_1.png)
 
-For example, "Content & SEO Strategy Manager" by Henkel in Rocky Hill, CT with an estimated average salary of $105K has listed no degree requirements. 
+For example, "SEO Manager" by Quizlet in San Francisco, CA, with an estimated average salary of $107.5K has listed no degree requirements.
 
 
 #### Do larger companies require a formal education?
@@ -401,7 +401,7 @@ Median only:
 Bars shwoing average and standard deviation:
 ![](../plots/png/6_4_salary_req_prog_avg_bars_1.png)
 
-"Senior Web Engineer - SEO" by StockX in Seattle requires JavaScript, HTML and CSS with an estimated average salary is \$116K (estimated range \$108-123K). The average salary in the state of Washington is \$69.2K and \$64.5K as median salary.
+"SEO Director" by Etsy in Brooklyn, NY, requires JavaScript, HTML and CSS with an estimated average salary is \$116K (estimated range \$108-123K). The average salary in the state of New York is \$71.6K and \$70K as median salary.
 
 
 ## 6.5	Salaries per Company Rating

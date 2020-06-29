@@ -2,6 +2,62 @@
 
 by Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)
 
+---
+title: "SEO Jobs Analysis"
+author: "Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: paper
+    highlight: kate
+    code_folding: hide
+    toc_depth: 3
+    toc_float: true
+editor_options:
+  chunk_output_type: console
+---
+
+<style>
+.list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
+  background-color: #00d188;
+  border-color: #00d188;
+}
+
+body {
+  font-family: montserrat;
+  color: #444444;
+  font-size: 14px;
+}
+
+h1 {
+  font-weight: bold;
+  font-size: 28px;
+}
+
+h1.title {
+  font-size: 30px;
+  color: #00d188;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 18px;
+}
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.showtext = TRUE)
+
+knitr::knit_hooks$set(inline = function(x) {
+  prettyNum(x, big.mark = ",", small.mark = ",", scientific = F)
+})
+```
+
+
 # 0. Introduction
 
 We use two data sets:
@@ -193,10 +249,13 @@ In total we found 792 positions mentioning Bachelors, 204 Masters and only 11 be
 
 Afterwards, we determined the minimimum degree required (Doctorate > Masters > Bachelors), yielding 792 Bachelors, 146 Masters and 7 Doctorates.
 
+
 #### What type of degrees are most often required (Bachelor vs Master vs Doctorate)?
 
 ![](./plots/png/5_1_require_edu_histo_1.png)
 ![](./plots/png/5_1_require_edu_histo_non_1.png)
+
+For example, ["SEO Manager" by Quizlet in San Francisco, CA](https://www.glassdoor.de/job-listing/seo-manager-sf-denver-quizlet-JV_IC1147401_KO0,21_KE22,29.htm?jl=3563120344&countryRedirect=true), with an estimated average salary of $107.5K has listed no degree requirements .
 
 
 #### Do larger companies require a formal education?
@@ -345,6 +404,8 @@ Median only:
 
 Bars shwoing average and standard deviation:
 ![](./plots/png/6_4_salary_req_prog_avg_bars_1.png)
+
+For example, ["SEO Director" by Etsy in Brooklyn, NY](https://www.glassdoor.com/job-listing/seo-director-etsy-JV_IC1132200_KO0,12_KE13,17.htm?jl=3567392143), requires JavaScript, HTML and CSS with an estimated average salary is \$116K (estimated range \$108-123K). The average salary in the state of New York is \$71.6K and \$70K as median salary.
 
 
 ## 6.5	Salaries per Company Rating

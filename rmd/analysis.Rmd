@@ -3479,7 +3479,7 @@ if(save == T){
 ```{r data-prep-salary}
 df_salary <- 
   df_gd %>% 
-  dplyr::select(salary, employer, ratings, description, location) %>% 
+  dplyr::select(job_title, salary, employer, ratings, description, location) %>% 
   filter(!is.na(salary)) %>% 
   mutate(
     salary_low = str_extract(salary, "\\$.*\\-"),
@@ -3488,7 +3488,7 @@ df_salary <-
   mutate_at(vars(matches("salary_")), ~str_extract(., "[0-9]+")) %>% 
   mutate_at(vars(matches("salary_")), as.numeric) %>% 
   mutate(
-    salary_avg = salary_low + salary_high / 2,
+    salary_avg = salary_low + ((salary_high - salary_low) / 2),
     salary_class = salary_avg %/% 10 * 10
   )
 ```
@@ -3529,8 +3529,8 @@ df_salary %>%
     ) +
     scale_y_continuous(
       expand = c(0, 0),
-      breaks = seq(0, 120, by = 20),
-      limits = c(0, 125)
+      breaks = seq(0, 160, by = 20),
+      limits = c(0, 170)
     ) +
     scale_fill_manual(
       values = c("grey60", bl_col),
@@ -3539,7 +3539,7 @@ df_salary %>%
     labs(
       x = "Average salary", 
       y = "Number of job offers",
-      title = "THE AVERAGE SEO ANNUAL SALARY IS $85K/YEAR."
+      title = "THE AVERAGE SEO ANNUAL SALARY IS $60K/YEAR."
     ) +
     theme(panel.grid.minor.x = element_blank())
 
@@ -3567,7 +3567,7 @@ df_salary_cities <-
     state = str_extract(location, "[^, ]*$"),
     state_lump = case_when(
       state == "CA" ~ "California",
-      #state == "FL" ~ "Florida",
+      #state == "WA" ~ "Washington",
       state == "NY" ~ "New York",
       state == "TX" ~ "Texas",
       TRUE ~ "other"
@@ -3583,7 +3583,8 @@ df_salary_cities %>%
       width = .85
    ) +
    geom_text(
-     data = df_salary_cities %>% slice(c(1, 7, 11)),
+     #data = df_salary_cities %>% slice(c(1, 5, 7, 10)),
+     data = df_salary_cities %>% slice(c(1, 7, 10)),
      aes(label = state_lump),
      family = "Montserrat",
      fontface = "bold",
@@ -3611,10 +3612,10 @@ df_salary_cities %>%
      nudge_x = .5
    ) +
    scale_x_continuous(
-     breaks = seq(0, 150, by = 25),
-     labels = glue::glue("${seq(0, 150, by = 25)}K"),
+     breaks = seq(0, 100, by = 20),
+     labels = glue::glue("${seq(0, 100, by = 20)}K"),
      expand = c(.001, .001),
-     limits = c(0, 150)
+     limits = c(0, 115)
    ) +
    scale_fill_manual(
      #values = c(darken(bl_col, .5), lighten(bl_col, .7), darken(bl_col, .25), "grey75", bl_col),
@@ -3628,6 +3629,7 @@ df_salary_cities %>%
      caption = 'Note: Only cities with 5 or more offers including salary estimations shown.'
    ) +
    theme(panel.grid.major.y = element_blank(),
+         panel.grid.minor.x = element_blank(),
          plot.title = element_text(size = 23))
 
 if(save == T){ 
@@ -3650,6 +3652,7 @@ df_salary_states <-
   group_by(state) %>% 
   summarize(
     avg = mean(salary_avg),
+    med = median(salary_avg),
     min = min(salary_avg),
     max = max(salary_avg),
     sd = sd(salary_avg),
@@ -3783,7 +3786,7 @@ df_salary_prog %>%
     ) +
     geom_text(
       aes(
-        y = 50,
+        y = 35,
         label = glue::glue("n = {n}")
       ),
       family = "Montserrat",
@@ -3842,7 +3845,7 @@ df_salary_prog %>%
     scale_y_continuous(
       breaks = seq(40, 120, by = 20),
       labels = glue::glue("${seq(40, 120, by = 20)}K"),
-      limits = c(40, NA)
+      limits = c(30, NA)
     ) +
     labs(
       x = "Programming language\nmentioned as requirement?",
@@ -3884,7 +3887,7 @@ df_salary_prog %>%
     ) +
     geom_text(
       aes(
-        y = 50,
+        y = 35,
         label = glue::glue("n = {n}")
       ),
       family = "Montserrat",
@@ -3921,7 +3924,7 @@ df_salary_prog %>%
     scale_y_continuous(
       breaks = seq(40, 120, by = 20),
       labels = glue::glue("${seq(40, 120, by = 20)}K"),
-      limits = c(40, NA)
+      limits = c(30, NA)
     ) +
     labs(
       x = "Programming language\nmentioned as requirement?",
@@ -4039,7 +4042,7 @@ df_salary_prog %>%
     ) +
    geom_text(
       aes(
-        y = 50,
+        y = 35,
         label = glue::glue("n = {n}")
       ),
       family = "Montserrat",
@@ -4076,7 +4079,7 @@ df_salary_prog %>%
     scale_y_continuous(
       breaks = seq(40, 120, by = 20),
       labels = glue::glue("${seq(40, 120, by = 20)}K"),
-      limits = c(40, NA)
+      limits = c(30, NA)
     ) +
     labs(
       x = "Programming language\nmentioned as requirement?",
@@ -4093,6 +4096,20 @@ if(save == T){
 }
 ```
 
+
+```{r}
+set.seed(1)
+
+sample <- 
+  df_salary %>% 
+  filter(
+    str_detect(description, "\\bjavascript\\b"),
+    salary_avg > 60
+  ) %>% 
+ sample_n(1)
+```
+
+"Senior Web Engineer - SEO" by StockX in Seattle requires JavaScript, HTML and CSS with an estimated average salary is \$116K (estimated range \$108-123K). The average salary in the state of Washington is \$69.2K and \$64.5K as median salary.
 
 
 ## 6.5	Salaries per Company Rating
@@ -4136,6 +4153,35 @@ if(save == T){
 ```
 
 
+
+```{r}
+set.seed(1)
+
+sample <- 
+  df_salary %>%
+  mutate(
+    bachelors = if_else(str_detect(description, "b.ba.|b.sc.|bba|bsc|\\bbachelor\\b"), 1, 0),
+    masters = if_else(str_detect(description, "m.ba.|m.sc.|mba|msc|[(to|will)]\\s\\bmaster\\b"), 1, 0),
+    doctorate = if_else(str_detect(description, "ph.d.|phd|doctora"), 1, 0)
+  ) %>% 
+  filter(!is.na(bachelors)) %>% 
+  mutate(
+    education = case_when(
+      bachelors + masters + doctorate == 0 ~ "none",
+      bachelors == 1 ~ "bachelors",
+      bachelors == 0 & masters == 1 ~ "masters",
+      bachelors + masters == 0 & doctorate == 1 ~ "doctorate"
+    )
+  ) %>% 
+  filter(
+    str_detect(job_title, "Manag"), 
+    salary_avg > 90, 
+    education == "none"
+  ) %>% 
+  sample_n(1)
+```
+
+"Content & SEO Strategy Manager" by Henkel in Rocky Hill, CT with an estimated average salary of $105K has listed no degree requirements. 
 
 # 7. Dates of Job Offer Posting
 

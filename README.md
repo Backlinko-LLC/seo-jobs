@@ -1,6 +1,17 @@
-# SEO Jobs Analysis
+# The 2020 SEO Jobs Report
 
-by Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)
+This is the Github repository for Backlinko´s 2020 SEO Jobs Report.
+
+- 📝 The full data report can be found below.
+- 🔨 The study was conducted with the statistical programming language [R](https://www.r-project.org/).
+- 📊 [The code for the analysis and plots](https://github.com/backlinko/seo-jobs/blob/master/rmd/analysis.Rmd)
+- 💾 [The datasets (excluding Linkedin due to its size)](https://github.com/backlinko/seo-jobs/tree/master/raw_data) 
+
+
+&ensp;
+### Contributors ✨
+- Cédric Scherer and Daniel Kupka (both frontpagedata.com)
+- Brian Dean (backlinko.com)
 
 
 # 0. Introduction

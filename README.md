@@ -2,61 +2,6 @@
 
 by Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)
 
----
-title: "SEO Jobs Analysis"
-author: "Cédric Scherer & Daniel Kupka (FrontPage Data) & Brian Dean (backlinko.com)"
-date: "`r Sys.Date()`"
-output:
-  html_document:
-    theme: paper
-    highlight: kate
-    code_folding: hide
-    toc_depth: 3
-    toc_float: true
-editor_options:
-  chunk_output_type: console
----
-
-<style>
-.list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
-  background-color: #00d188;
-  border-color: #00d188;
-}
-
-body {
-  font-family: montserrat;
-  color: #444444;
-  font-size: 14px;
-}
-
-h1 {
-  font-weight: bold;
-  font-size: 28px;
-}
-
-h1.title {
-  font-size: 30px;
-  color: #00d188;
-}
-
-h2 {
-  font-size: 24px;
-}
-
-h3 {
-  font-size: 18px;
-}
-</style>
-
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.showtext = TRUE)
-
-knitr::knit_hooks$set(inline = function(x) {
-  prettyNum(x, big.mark = ",", small.mark = ",", scientific = F)
-})
-```
-
 
 # 0. Introduction
 
@@ -121,8 +66,6 @@ The modified stacked bar plot shows the number of words found per job category a
 
 ## 2.1 Hot Spots: Cities (Bubble Map)
 
-![](./plots/png/2_1_map_northamerica_cities_1.png)
-
 ![](./plots/png/2_1_map_states_cities_1.png)
 
 ![](./plots/png/2_1_bars_cities_1.png)
@@ -132,12 +75,6 @@ The modified stacked bar plot shows the number of words found per job category a
 
 ### Chloropleth Map
 
-This map is derived from spatial locations by intersecting cities with state polygons - thus slightly different numbers compared to the hexagonal grid map which uses states as stated by the source. 
-
-![](./plots/png/2_2_map_states_chloro_1.png)
-
-
-Below is a map based on the location information in the data so same numbers as in the hexagonal tile map:
 
 ![](./plots/png/2_2_map_states_chloro2_1.png)
 
@@ -160,9 +97,6 @@ Below is a map based on the location information in the data so same numbers as 
 #### How large are companies that hire?
 
 ![](./plots/png/3_1_size_histo_1.png)
-
-
-####  (Do larger companies require more specialized tasks?)
 
 
 
@@ -212,7 +146,7 @@ The following graphs show counts of unique companies per rating, first for each 
 ![](./plots/png/3_4_rating_best_1.png)
 ![](./plots/png/3_4_rating_worst_1.png)
 
-**Note:** Since there were many companies with the highest rating of 5 (see plots before), we decided to modify the condtions asnd to remove companies with revenues below $10 million. There were anayway only seven companies with the lowest rating possible, so we did not apply any filtering in that case.
+**Note:** Since there were many companies with the highest rating of 5 (see plots before), we decided to modify the conditions and to remove companies with revenues below $10 million. There were anayway only seven companies with the lowest rating possible, so we did not apply any filtering in that case.
 
 
 
@@ -222,13 +156,11 @@ This is a simple wordcloud of words mentioned in the job descriptions with a fre
 
 Words that occured at least 100 times:
 
-![](./plots/png/4_cloud_word_1.png)
 ![](./plots/png/4_cloud_word_upper_1.png)
 
 
 Words that occured at least 1000 times:
 
-![](./plots/png/4_cloud_word_1000_1.png)
 ![](./plots/png/4_cloud_word_1000_upper_1.png)
 
 **Note:** Consecutive sequences of words (*ngrams*) in the job desciptions do not bring any insightful, a lot of phrasings and fill words.
@@ -288,13 +220,8 @@ A) Absolute nubmer of job offers requiring a qualification (but thus no informat
 
 B) Proportional across all job offers (i.e. number of offers with [education] / sum(job offers)):
 
-**Note:** For all these plots, we provide 3 different versions to deal with overplotting of the x-axis labels (could be applied to option A and/or C as well).
-
 ![](./plots/png/5_1_require_edu_revenue_rel_small_1.png)
 
-![](./plots/png/5_1_require_edu_revenue_rel_dodge_1.png)
-
-![](./plots/png/5_1_require_edu_revenue_rel_angle_1.png)
 
 ![](./plots/png/5_1_require_edu_revenue_non_small_1.png)
 
@@ -359,10 +286,6 @@ Note: I checked some manually, especially the high values. An experience of 23+ 
 Only up to 10 years:
 ![](./plots/png/5_4_require_experience_reduced_1.png)
 
-#### (What type of SEO jobs require +5 years experience?)
-
-Given the low number of job offers where years of experience could be easily extracted, I would not go any deeper here and skip this question (at least for now).
-
 
 
 # 6	Salaries
@@ -384,31 +307,23 @@ Given the low number of job offers where years of experience could be easily ext
 ![](./plots/png/6_2_salary_states_1.png)
 
 
-## 6.3	Salaries for different positions
 
-#### (What are the highest/lowest paying SEO positions?)
-
-We decided to skip this question (as we did with some others since there where too many for the first round). If you are iterested in this or any other additonal question, jsut let us know.
-
-
-## 6.4	Salaries per job requirement
+## 6.3	Salaries per job requirement
 
 #### Do positions with programming languages pay significantly more?
 
 ![](./plots/png/6_4_salary_req_prog_1.png)
-Average only:
-![](./plots/png/6_4_salary_req_prog_avg_1.png)
 
 Median only:
 ![](./plots/png/6_4_salary_req_prog_med_1.png)
 
-Bars shwoing average and standard deviation:
+Bars showing average and standard deviation:
 ![](./plots/png/6_4_salary_req_prog_avg_bars_1.png)
 
 For example, ["SEO Director" by Etsy in Brooklyn, NY](https://www.glassdoor.com/job-listing/seo-director-etsy-JV_IC1132200_KO0,12_KE13,17.htm?jl=3567392143), requires JavaScript, HTML and CSS with an estimated average salary is \$116K (estimated range \$108-123K). The average salary in the state of New York is \$71.6K and \$70K as median salary.
 
 
-## 6.5	Salaries per Company Rating
+## 6.4	Salaries per Company Rating
 
 #### Do lower rated companies pay less (salary)?
 
@@ -420,7 +335,6 @@ For example, ["SEO Director" by Etsy in Brooklyn, NY](https://www.glassdoor.com/
 
 ## 7.1 Job offers by week and year
 
-Old job offers may not be scraped since they were filled already and removed from/by LinkedIn?! I would not investigate anything with this data at all...
 
 All countries:
 ![](./plots/png/7_1_dates_weeks_all_1.png)
